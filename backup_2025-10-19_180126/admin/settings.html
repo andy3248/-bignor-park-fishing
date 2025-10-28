@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Bignor Park Admin</title>
+    <link rel="stylesheet" href="../index-clean.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="admin-layout">
+    <header class="main-header">
+        <div class="header-wrapper">
+            <div class="logo-area">
+                <img src="../carp-logo.png" alt="Bignor Park" class="logo-img">
+                <div class="logo-title">
+                    <h1>Bignor Park</h1>
+                    <span>CARP FISHERY - ADMIN</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <a href="../home.html">Home</a>
+                <span id="adminName" style="color: #2c3e50; font-weight: 600;">Admin</span>
+                <button onclick="logoutAdmin()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <nav class="admin-secondary-nav">
+        <div class="admin-nav-container">
+            <a href="dashboard.html" class="admin-nav-btn">Dashboard</a>
+            <a href="bookings.html" class="admin-nav-btn">Bookings</a>
+            <a href="members.html" class="admin-nav-btn">Members</a>
+            <a href="lakes.html" class="admin-nav-btn">Lakes</a>
+            <a href="settings.html" class="admin-nav-btn active">Settings</a>
+        </div>
+    </nav>
+
+    <div class="admin-content">
+        <div class="admin-page-header">
+            <h1>Site Settings</h1>
+            <p>Configure booking rules, pricing, and admin accounts</p>
+        </div>
+
+        <!-- Booking Settings -->
+        <div class="admin-table-container" style="margin-bottom: 32px;">
+            <div class="admin-table-header">
+                <h2>Booking Settings</h2>
+            </div>
+            <div style="padding: 32px;">
+                <div style="margin-bottom: 32px;">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                        <input type="checkbox" id="bookingRestriction" checked style="width: 20px; height: 20px;">
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50;">Enable 12-hour booking restriction</div>
+                            <div style="font-size: 0.9rem; color: #6c757d;">Members can only make one booking every 12 hours</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                        <input type="checkbox" id="autoExpire" checked style="width: 20px; height: 20px;">
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50;">Auto-expire bookings after 24 hours</div>
+                            <div style="font-size: 0.9rem; color: #6c757d;">Automatically mark bookings as completed 24 hours after start time</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50; display: block; margin-bottom: 8px;">
+                            Bignor Main Lake Price (£)
+                        </label>
+                        <input type="number" value="25" min="0" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #2c3e50; display: block; margin-bottom: 8px;">
+                            Wood Pool Price (£)
+                        </label>
+                        <input type="number" value="20" min="0" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Accounts -->
+        <div class="admin-table-container">
+            <div class="admin-table-header">
+                <h2>Admin Accounts</h2>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight: 600;">Admin User</td>
+                        <td>admin@bignorpark.com</td>
+                        <td><span class="admin-badge warning">Super Admin</span></td>
+                        <td>
+                            <button class="admin-action-btn secondary" disabled>
+                                Cannot remove
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600;">Michael Boyle</td>
+                        <td>michael@bignorpark.com</td>
+                        <td><span class="admin-badge info">Admin</span></td>
+                        <td>
+                            <button onclick="alert('Remove admin access')" class="admin-action-btn danger">
+                                Remove
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="padding: 24px; border-top: 1px solid #f0f0f0;">
+                <button onclick="alert('Add new admin - would open modal')" class="admin-action-btn primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add New Admin
+                </button>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div style="margin-top: 32px; text-align: right;">
+            <button onclick="saveSettings()" class="admin-action-btn primary" style="padding: 16px 48px; font-size: 1.1rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Save Changes
+            </button>
+        </div>
+    </div>
+
+    <script src="admin-auth.js"></script>
+    <script>
+        if (!requireAdmin()) {}
+        const admin = getCurrentAdmin();
+        if (admin) document.getElementById('adminName').textContent = admin.fullName || 'Admin';
+
+        function saveSettings() {
+            // In production, this would save to database
+            alert('Settings saved successfully!');
+        }
+    </script>
+</body>
+</html>

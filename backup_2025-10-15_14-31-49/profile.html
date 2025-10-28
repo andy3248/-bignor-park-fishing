@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Bignor Park</title>
+    <link rel="stylesheet" href="index-clean.css">
+    <link rel="stylesheet" href="user-dropdown.css">
+    <link rel="stylesheet" href="user-modals.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .profile-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .profile-header p {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-avatar-section {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(72, 209, 204, 0.3);
+        }
+
+        .change-avatar-btn {
+            background: transparent;
+            border: 2px solid #48d1cc;
+            color: #48d1cc;
+            padding: 10px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .change-avatar-btn:hover {
+            background: #48d1cc;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #48d1cc;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #48d1cc;
+            box-shadow: 0 0 0 3px rgba(72, 209, 204, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group small {
+            display: block;
+            color: #6c757d;
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 209, 204, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 209, 204, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .success-alert {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-alert.show {
+            display: flex;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="header-wrapper">
+            <div class="logo-area">
+                <img src="carp-logo.png" alt="Bignor Park" class="logo-img">
+                <div class="logo-title">
+                    <h1>Bignor Park</h1>
+                    <span>CARP FISHERY</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <a href="home.html">Home</a>
+                <a href="booking.html">Bookings</a>
+                
+                <!-- User Dropdown Menu -->
+                <div class="user-menu-container" id="userMenuContainer">
+                    <button class="user-menu-button" id="userMenuButton" aria-haspopup="true" aria-expanded="false">
+                        <div class="user-avatar" id="userAvatar">
+                            <span id="userInitials">M</span>
+                        </div>
+                        <span id="userName" class="user-name">Member</span>
+                        <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    
+                    <div class="user-dropdown-menu" id="userDropdownMenu" role="menu" aria-hidden="true">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-info">
+                                <div class="dropdown-avatar" id="dropdownAvatar">
+                                    <span id="dropdownInitials">M</span>
+                                </div>
+                                <div class="dropdown-user-details">
+                                    <div class="dropdown-user-name" id="dropdownUserName">Member</div>
+                                    <div class="dropdown-user-email" id="dropdownUserEmail">member@email.com</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <a href="profile.html" class="dropdown-item" role="menuitem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Edit Profile</span>
+                        </a>
+                        
+                        <a href="my-bookings.html" class="dropdown-item" role="menuitem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span>Bookings & Status</span>
+                        </a>
+                        
+                        <a href="#" class="dropdown-item" role="menuitem" onclick="openChangePasswordModal(); return false;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <span>Change Password</span>
+                        </a>
+                        
+                        <a href="#" class="dropdown-item" role="menuitem" onclick="openChangeImageModal(); return false;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <span>Change Profile Image</span>
+                        </a>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <a href="#" class="dropdown-item danger" role="menuitem" onclick="openDeactivateModal(); return false;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            <span>Deactivate Account</span>
+                        </a>
+                        
+                        <a href="#" class="dropdown-item" role="menuitem" onclick="logout(); return false;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Sign Out</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>Edit Profile</h1>
+            <p>Update your personal information and preferences</p>
+        </div>
+
+        <div id="successAlert" class="success-alert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>Profile updated successfully!</span>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-avatar-section">
+                <div class="profile-avatar-large" id="profileAvatar">
+                    <span id="profileInitials">M</span>
+                </div>
+                <br>
+                <button class="change-avatar-btn" onclick="openChangeImageModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 5px;">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    Change Profile Image
+                </button>
+            </div>
+
+            <form id="profileForm" onsubmit="saveProfile(event)">
+                <div class="form-section">
+                    <h3>Personal Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fullName">Full Name *</label>
+                            <input type="text" id="fullName" required>
+                            <span class="error-message" id="fullNameError">Please enter your full name</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username">
+                            <small>Optional display name</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" required>
+                            <span class="error-message" id="emailError">Please enter a valid email</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone">
+                            <small>Optional contact number</small>
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label for="bio">About Me</label>
+                            <textarea id="bio" placeholder="Tell us a bit about yourself and your fishing experience..."></textarea>
+                            <small>Share your fishing interests, experience level, or favorite catches</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='home.html'">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 5px;">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="user-dropdown.js"></script>
+    <script>
+        // Load user profile data
+        function loadProfile() {
+            try {
+                let currentUserData = localStorage.getItem('currentUser') || localStorage.getItem('tempUserData');
+                if (!currentUserData) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                let currentUser;
+                try {
+                    currentUser = JSON.parse(currentUserData);
+                } catch (e) {
+                    const users = JSON.parse(localStorage.getItem('users') || '[]');
+                    currentUser = users.find(u => u.email === currentUserData);
+                }
+
+                if (!currentUser) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Populate form fields
+                document.getElementById('fullName').value = currentUser.fullName || '';
+                document.getElementById('username').value = currentUser.username || '';
+                document.getElementById('email').value = currentUser.email || '';
+                document.getElementById('phone').value = currentUser.phone || '';
+                document.getElementById('bio').value = currentUser.bio || '';
+
+                // Update avatar
+                const initials = getInitials(currentUser.fullName || currentUser.email);
+                document.getElementById('profileInitials').textContent = initials;
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Save profile
+        function saveProfile(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+
+            // Validation
+            if (!fullName) {
+                showError('fullNameError');
+                return;
+            }
+
+            if (!email || !isValidEmail(email)) {
+                showError('emailError');
+                return;
+            }
+
+            try {
+                // Get current user
+                let currentUserData = localStorage.getItem('currentUser') || localStorage.getItem('tempUserData');
+                let currentUser = JSON.parse(currentUserData);
+
+                // Update user object
+                currentUser.fullName = fullName;
+                currentUser.username = username;
+                currentUser.email = email;
+                currentUser.phone = phone;
+                currentUser.bio = bio;
+
+                // Save to localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                // Update in users array
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const userIndex = users.findIndex(u => u.email === currentUser.email);
+                if (userIndex !== -1) {
+                    users[userIndex] = currentUser;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+
+                // Show success message
+                const successAlert = document.getElementById('successAlert');
+                successAlert.classList.add('show');
+
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    successAlert.classList.remove('show');
+                }, 3000);
+
+                // Update avatar
+                const initials = getInitials(fullName);
+                document.getElementById('profileInitials').textContent = initials;
+
+                console.log('Profile updated successfully');
+
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                alert('Error saving profile. Please try again.');
+            }
+        }
+
+        // Validation helpers
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(errorId) {
+            const errorEl = document.getElementById(errorId);
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 3000);
+        }
+
+        function getInitials(name) {
+            if (!name) return 'M';
+            if (name.includes('@')) return name.charAt(0).toUpperCase();
+            const parts = name.trim().split(' ');
+            if (parts.length >= 2) {
+                return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // Load profile on page load
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+
+    <!-- Include Modals -->
+    <script src="user-modals.js"></script>
+</body>
+</html>
+

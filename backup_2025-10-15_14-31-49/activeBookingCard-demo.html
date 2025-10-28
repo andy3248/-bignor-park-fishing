@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Booking Card - Demo</title>
+    <link rel="stylesheet" href="activeBookingCard.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .demo-header h1 {
+            font-size: 2.5rem;
+            margin: 0 0 15px 0;
+        }
+
+        .demo-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .demo-controls {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-controls h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .control-group button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 209, 204, 0.4);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            padding: 12px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button-group button:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>🎣 Active Booking Card</h1>
+        <p>Beautiful component for displaying fishing session bookings</p>
+    </div>
+
+    <div class="demo-controls">
+        <h3>🎨 Create Demo Booking</h3>
+        
+        <div class="control-group">
+            <label for="demoLake">Select Lake:</label>
+            <select id="demoLake">
+                <option value="bignor-main">Bignor Main Lake</option>
+                <option value="wood-pool">Wood Pool</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="demoDate">Session Date:</label>
+            <input type="date" id="demoDate">
+        </div>
+
+        <div class="control-group">
+            <label for="demoStatus">Status:</label>
+            <select id="demoStatus">
+                <option value="upcoming">Upcoming (Future date)</option>
+                <option value="active">Active (Today)</option>
+                <option value="completed">Completed (Past date)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="demoNotes">Notes (optional):</label>
+            <input type="text" id="demoNotes" placeholder="First session of the season!">
+        </div>
+
+        <div class="control-group">
+            <button onclick="createDemoBooking()">Create Demo Booking</button>
+        </div>
+
+        <div class="button-group">
+            <button onclick="clearDemoBooking()">Clear Booking</button>
+            <button onclick="refreshCard()">Refresh Card</button>
+            <button onclick="viewLocalStorage()">View Storage</button>
+        </div>
+    </div>
+
+    <!-- Active Booking Card Container -->
+    <div class="active-booking-container">
+        <div id="bookingCardContainer" data-active-booking-card data-user-id="demo@test.com"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="activeBooking.js"></script>
+    <script src="booking-integration-utc.js"></script>
+    <script src="activeBookingCard.js"></script>
+    <script>
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('demoDate').value = tomorrow.toISOString().split('T')[0];
+
+        // Demo user
+        const demoUser = {
+            email: 'demo@test.com',
+            fullName: 'Demo User',
+            name: 'Demo User'
+        };
+
+        // Store demo user
+        localStorage.setItem('currentUser', JSON.stringify(demoUser));
+
+        function createDemoBooking() {
+            const lakeSlug = document.getElementById('demoLake').value;
+            let dateStr = document.getElementById('demoDate').value;
+            const status = document.getElementById('demoStatus').value;
+            const notes = document.getElementById('demoNotes').value;
+
+            // Adjust date based on status
+            if (status === 'active') {
+                // Set to today
+                const today = new Date();
+                dateStr = today.toISOString().split('T')[0];
+            } else if (status === 'completed') {
+                // Set to yesterday
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                dateStr = yesterday.toISOString().split('T')[0];
+            }
+
+            // Clear existing booking first
+            window.ActiveBookingSystem.clearActiveBooking(demoUser.email);
+
+            // Create the booking
+            const result = window.BookingIntegration.createBooking(
+                dateStr,
+                lakeSlug,
+                demoUser,
+                notes
+            );
+
+            if (result.success) {
+                console.log('✅ Demo booking created:', result);
+                
+                // Refresh the card
+                setTimeout(() => {
+                    refreshCard();
+                }, 200);
+
+                // Show success message
+                alert('✅ Demo booking created!\n\nStatus: ' + status.toUpperCase());
+            } else {
+                alert('❌ Error: ' + result.error);
+            }
+        }
+
+        function clearDemoBooking() {
+            if (!confirm('Clear the demo booking?')) {
+                return;
+            }
+
+            window.ActiveBookingSystem.clearActiveBooking(demoUser.email);
+            refreshCard();
+            alert('✅ Demo booking cleared');
+        }
+
+        function refreshCard() {
+            const container = document.getElementById('bookingCardContainer');
+            window.ActiveBookingCard.render(demoUser.email, container);
+        }
+
+        function viewLocalStorage() {
+            const booking = window.ActiveBookingSystem.getActiveBooking(demoUser.email);
+            
+            if (booking) {
+                const formatted = window.ActiveBookingSystem.formatBookingForDisplay(booking);
+                console.log('📋 Current Booking:', booking);
+                console.log('🎨 Formatted Display:', formatted);
+                
+                alert(
+                    '📋 Current Booking:\n\n' +
+                    `Lake: ${booking.lakeName}\n` +
+                    `Session: ${formatted.sessionDate}\n` +
+                    `Status: ${formatted.status}\n` +
+                    `Active: ${formatted.isActive}\n` +
+                    `Upcoming: ${formatted.isUpcoming}\n` +
+                    `\nCheck console for full details`
+                );
+            } else {
+                alert('ℹ️ No booking found in storage');
+            }
+        }
+
+        // Initial render
+        console.log('🎣 Active Booking Card Demo loaded');
+        console.log('👉 Create a demo booking above to see the card');
+    </script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Booking System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .test-buttons {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Booking System Debug</h1>
+    
+    <div class="test-buttons">
+        <button onclick="refreshDebug()">Refresh Debug Info</button>
+        <button onclick="testCreateBooking()">Test Create Booking</button>
+        <button onclick="clearAllData()">Clear All Data</button>
+        <button onclick="window.location.href='booking.html'">Go to Booking Page</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Current User</h2>
+        <div id="currentUserInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>All Bookings</h2>
+        <div id="allBookingsInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>User's Active Booking</h2>
+        <div id="activeBookingInfo"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>localStorage Data</h2>
+        <div id="localStorageInfo"></div>
+    </div>
+    
+    <script>
+        function refreshDebug() {
+            // Current User
+            const currentUser = localStorage.getItem('currentUser');
+            const currentUserParsed = currentUser ? JSON.parse(currentUser) : null;
+            document.getElementById('currentUserInfo').innerHTML = `<pre>${JSON.stringify(currentUserParsed, null, 2)}</pre>`;
+            
+            // All Bookings
+            const bookings = localStorage.getItem('bookings');
+            const bookingsParsed = bookings ? JSON.parse(bookings) : [];
+            document.getElementById('allBookingsInfo').innerHTML = `<pre>${JSON.stringify(bookingsParsed, null, 2)}</pre>`;
+            
+            // User's Active Booking
+            let activeBookingInfo = 'No current user';
+            if (currentUserParsed) {
+                const userBookings = bookingsParsed.filter(booking => booking.userId === currentUserParsed.email);
+                const activeBooking = userBookings.find(booking => booking.status === 'upcoming');
+                activeBookingInfo = activeBooking ? JSON.stringify(activeBooking, null, 2) : 'No active booking found';
+            }
+            document.getElementById('activeBookingInfo').innerHTML = `<pre>${activeBookingInfo}</pre>`;
+            
+            // localStorage Data
+            const localStorageData = {
+                currentUser: localStorage.getItem('currentUser'),
+                bookings: localStorage.getItem('bookings'),
+                users: localStorage.getItem('users'),
+                tempSelectedDate: localStorage.getItem('tempSelectedDate'),
+                tempSelectedLake: localStorage.getItem('tempSelectedLake')
+            };
+            document.getElementById('localStorageInfo').innerHTML = `<pre>${JSON.stringify(localStorageData, null, 2)}</pre>`;
+        }
+        
+        function testCreateBooking() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                alert('No user logged in. Please log in first.');
+                return;
+            }
+            
+            const user = JSON.parse(currentUser);
+            const testBooking = {
+                id: Date.now().toString(),
+                userId: user.email,
+                userName: user.fullName,
+                lake: 'bignor',
+                lakeName: 'Bignor Main Lake',
+                date: '2025-07-28',
+                notes: 'Test booking created from debug page',
+                status: 'upcoming',
+                createdAt: new Date().toISOString()
+            };
+            
+            const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            existingBookings.push(testBooking);
+            localStorage.setItem('bookings', JSON.stringify(existingBookings));
+            
+            alert('Test booking created! Refresh debug info to see it.');
+            refreshDebug();
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all booking data?')) {
+                localStorage.removeItem('bookings');
+                localStorage.removeItem('tempSelectedDate');
+                localStorage.removeItem('tempSelectedLake');
+                alert('All booking data cleared!');
+                refreshDebug();
+            }
+        }
+        
+        // Load debug info on page load
+        refreshDebug();
+    </script>
+</body>
+</html> 

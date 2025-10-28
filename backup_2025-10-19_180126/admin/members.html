@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Management - Bignor Park Admin</title>
+    <link rel="stylesheet" href="../index-clean.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="admin-layout">
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="header-wrapper">
+            <div class="logo-area">
+                <img src="../carp-logo.png" alt="Bignor Park" class="logo-img">
+                <div class="logo-title">
+                    <h1>Bignor Park</h1>
+                    <span>CARP FISHERY - ADMIN</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <a href="../home.html">Home</a>
+                <span id="adminName" style="color: #2c3e50; font-weight: 600;">Admin</span>
+                <button onclick="logoutAdmin()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Admin Secondary Navigation -->
+    <nav class="admin-secondary-nav">
+        <div class="admin-nav-container">
+            <a href="dashboard.html" class="admin-nav-btn">Dashboard</a>
+            <a href="bookings.html" class="admin-nav-btn">Bookings</a>
+            <a href="members.html" class="admin-nav-btn active">Members</a>
+            <a href="lakes.html" class="admin-nav-btn">Lakes</a>
+            <a href="settings.html" class="admin-nav-btn">Settings</a>
+        </div>
+    </nav>
+
+    <!-- Admin Content -->
+    <div class="admin-content">
+        <div class="admin-page-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>Members Management</h1>
+                <p>View and manage registered members</p>
+            </div>
+            <button onclick="openAddMemberModal()" class="admin-action-btn primary" style="padding: 14px 24px; font-size: 1rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add New Member
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="admin-filters">
+            <div class="admin-filter-group">
+                <label for="searchMember">Search</label>
+                <input type="text" id="searchMember" placeholder="Name or email..." oninput="filterMembers()">
+            </div>
+            <div class="admin-filter-group">
+                <label for="filterMemberStatus">Status</label>
+                <select id="filterMemberStatus" onchange="filterMembers()">
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="admin-table-container">
+            <div class="admin-table-header">
+                <h2>All Members (<span id="membersCount">0</span>)</h2>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Total Bookings</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #6c757d;">
+                            Loading members...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="admin-auth.js"></script>
+    <script src="admin-members.js"></script>
+    <script>
+        if (!requireAdmin()) {}
+        const admin = getCurrentAdmin();
+        if (admin) document.getElementById('adminName').textContent = admin.fullName || 'Admin';
+    </script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking System Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #48d1cc; }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #48d1cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover { background: #20b2aa; }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .day {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .day.available {
+            background: #d4edda;
+            cursor: pointer;
+        }
+        .day.available:hover {
+            background: #c3e6cb;
+        }
+        .day.selected {
+            background: #48d1cc;
+            color: white;
+            border-color: #20b2aa;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status { font-weight: bold; margin: 10px 0; }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #lakeSelection, #bookingForm {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎣 Booking System - Simplified Debug Version</h1>
+        
+        <div id="userStatus" class="section"></div>
+        
+        <div id="debugInfo" class="section warning">
+            <h3>🔍 Debug Information</h3>
+            <div id="debugContent"></div>
+        </div>
+        
+        <div class="section">
+            <h3>Step 1: Select a Date</h3>
+            <div class="calendar" id="simpleCalendar"></div>
+            <p id="selectedDateDisplay" class="status"></p>
+        </div>
+        
+        <div id="lakeSelection" class="section">
+            <h3>Step 2: Choose a Lake</h3>
+            <button onclick="selectLake('bignor')">Book Bignor Main Lake (3 spots)</button>
+            <button onclick="selectLake('wood')">Book Wood Pool (2 spots)</button>
+            <p id="selectedLakeDisplay" class="status"></p>
+        </div>
+        
+        <div id="bookingForm" class="section">
+            <h3>Step 3: Confirm Booking</h3>
+            <p id="confirmDetails" class="status"></p>
+            <label>Notes (Optional):</label>
+            <textarea id="bookingNotes" rows="3"></textarea>
+            <br>
+            <button onclick="confirmBooking()">✅ Confirm Booking</button>
+            <button onclick="cancelBooking()">❌ Cancel</button>
+        </div>
+        
+        <div class="section">
+            <h3>Your Active Booking</h3>
+            <div id="activeBookingDisplay"></div>
+        </div>
+        
+        <div class="section">
+            <h3>📊 Console Logs</h3>
+            <pre id="consoleLog"></pre>
+        </div>
+        
+        <div class="section">
+            <h3>🔧 Actions</h3>
+            <button onclick="showDebugInfo()">Show Debug Info</button>
+            <button onclick="clearAllBookings()">Clear All Bookings</button>
+            <button onclick="location.reload()">Refresh Page</button>
+            <button onclick="location.href='booking.html'">Go to Full Booking Page</button>
+        </div>
+    </div>
+
+    <script>
+        // Simple inline JavaScript (no modules)
+        let currentUser = null;
+        let selectedDate = null;
+        let selectedLake = null;
+        let bookings = [];
+        
+        const LAKES = {
+            'bignor': { name: 'Bignor Main Lake', capacity: 3 },
+            'wood': { name: 'Wood Pool', capacity: 2 }
+        };
+        
+        // Logger
+        function log(message, type = 'info') {
+            const consoleLog = document.getElementById('consoleLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] [${type.toUpperCase()}] ${message}\n`;
+            consoleLog.textContent += logEntry;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            console.log(message);
+        }
+        
+        // Initialize
+        function init() {
+            log('Initializing booking system...');
+            loadUser();
+            loadBookings();
+            generateCalendar();
+            displayActiveBooking();
+            showDebugInfo();
+        }
+        
+        // Load user from localStorage
+        function loadUser() {
+            try {
+                const userStr = localStorage.getItem('currentUser') || localStorage.getItem('tempUserData');
+                if (userStr) {
+                    try {
+                        currentUser = JSON.parse(userStr);
+                    } catch (e) {
+                        // Old format - email string
+                        const users = JSON.parse(localStorage.getItem('users') || '[]');
+                        currentUser = users.find(u => u.email === userStr);
+                    }
+                }
+                
+                const userStatus = document.getElementById('userStatus');
+                if (currentUser) {
+                    userStatus.className = 'section success';
+                    userStatus.innerHTML = `<h3>✅ Logged in as: ${currentUser.fullName || currentUser.email}</h3>`;
+                    log(`User logged in: ${currentUser.fullName || currentUser.email}`, 'success');
+                } else {
+                    userStatus.className = 'section error';
+                    userStatus.innerHTML = `<h3>❌ Not logged in</h3><p><a href="index.html">Please login first</a></p>`;
+                    log('No user found in localStorage', 'error');
+                }
+            } catch (error) {
+                log(`Error loading user: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load bookings from localStorage
+        function loadBookings() {
+            try {
+                const stored = localStorage.getItem('bignor_park_bookings');
+                bookings = stored ? JSON.parse(stored) : [];
+                log(`Loaded ${bookings.length} booking(s)`, 'info');
+            } catch (error) {
+                log(`Error loading bookings: ${error.message}`, 'error');
+                bookings = [];
+            }
+        }
+        
+        // Save bookings to localStorage
+        function saveBookings() {
+            try {
+                localStorage.setItem('bignor_park_bookings', JSON.stringify(bookings));
+                log('Bookings saved to localStorage', 'success');
+            } catch (error) {
+                log(`Error saving bookings: ${error.message}`, 'error');
+            }
+        }
+        
+        // Generate calendar
+        function generateCalendar() {
+            const calendar = document.getElementById('simpleCalendar');
+            calendar.innerHTML = '';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Show next 14 days
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day available';
+                dayEl.textContent = `${date.getDate()}/${date.getMonth() + 1}`;
+                dayEl.onclick = () => selectDate(date);
+                
+                calendar.appendChild(dayEl);
+            }
+            
+            log('Calendar generated with 14 days', 'info');
+        }
+        
+        // Select date
+        function selectDate(date) {
+            selectedDate = date;
+            
+            // Update UI
+            document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            const dateStr = date.toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            document.getElementById('selectedDateDisplay').textContent = `Selected: ${dateStr}`;
+            document.getElementById('lakeSelection').style.display = 'block';
+            
+            log(`Date selected: ${dateStr}`, 'success');
+        }
+        
+        // Select lake
+        function selectLake(lake) {
+            if (!selectedDate) {
+                alert('Please select a date first');
+                return;
+            }
+            
+            selectedLake = lake;
+            const lakeName = LAKES[lake].name;
+            
+            document.getElementById('selectedLakeDisplay').textContent = `Selected: ${lakeName}`;
+            document.getElementById('bookingForm').style.display = 'block';
+            
+            const dateStr = selectedDate.toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            document.getElementById('confirmDetails').textContent = 
+                `Booking ${lakeName} for ${dateStr}`;
+            
+            log(`Lake selected: ${lakeName}`, 'success');
+        }
+        
+        // Confirm booking
+        function confirmBooking() {
+            if (!currentUser) {
+                alert('Please login first');
+                location.href = 'index.html';
+                return;
+            }
+            
+            if (!selectedDate || !selectedLake) {
+                alert('Please select a date and lake');
+                return;
+            }
+            
+            const notes = document.getElementById('bookingNotes').value;
+            const dateStr = selectedDate.toISOString().split('T')[0];
+            
+            const newBooking = {
+                id: Date.now().toString(),
+                userId: currentUser.email,
+                userName: currentUser.fullName || currentUser.email,
+                lake: selectedLake,
+                lakeName: LAKES[selectedLake].name,
+                date: dateStr,
+                notes: notes,
+                status: 'upcoming',
+                createdAt: new Date().toISOString()
+            };
+            
+            bookings.push(newBooking);
+            saveBookings();
+            
+            log(`Booking created: ${newBooking.id}`, 'success');
+            
+            alert('✅ Booking confirmed successfully!');
+            
+            // Reset
+            cancelBooking();
+            displayActiveBooking();
+        }
+        
+        // Cancel booking
+        function cancelBooking() {
+            selectedDate = null;
+            selectedLake = null;
+            document.getElementById('bookingNotes').value = '';
+            document.getElementById('lakeSelection').style.display = 'none';
+            document.getElementById('bookingForm').style.display = 'none';
+            document.getElementById('selectedDateDisplay').textContent = '';
+            document.getElementById('selectedLakeDisplay').textContent = '';
+            document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
+            log('Booking cancelled', 'info');
+        }
+        
+        // Display active booking
+        function displayActiveBooking() {
+            const display = document.getElementById('activeBookingDisplay');
+            
+            if (!currentUser) {
+                display.innerHTML = '<p>Please login to see your bookings</p>';
+                return;
+            }
+            
+            const userBookings = bookings.filter(b => 
+                b.userId === currentUser.email && b.status === 'upcoming'
+            );
+            
+            if (userBookings.length === 0) {
+                display.innerHTML = '<p>No active bookings</p>';
+                return;
+            }
+            
+            const booking = userBookings[0];
+            const bookingDate = new Date(booking.date + 'T00:00:00');
+            const createdDate = new Date(booking.createdAt);
+            
+            display.innerHTML = `
+                <div class="section success">
+                    <h4>${booking.lakeName}</h4>
+                    <p><strong>Date:</strong> ${bookingDate.toLocaleDateString('en-GB', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    })}</p>
+                    <p><strong>Booked on:</strong> ${createdDate.toLocaleDateString('en-GB')}</p>
+                    <p><strong>Notes:</strong> ${booking.notes || 'None'}</p>
+                    <button onclick="deleteBooking('${booking.id}')">Cancel This Booking</button>
+                </div>
+            `;
+        }
+        
+        // Delete booking
+        function deleteBooking(bookingId) {
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                bookings = bookings.filter(b => b.id !== bookingId);
+                saveBookings();
+                displayActiveBooking();
+                log(`Booking deleted: ${bookingId}`, 'info');
+                alert('Booking cancelled successfully');
+            }
+        }
+        
+        // Show debug info
+        function showDebugInfo() {
+            const debugContent = document.getElementById('debugContent');
+            debugContent.innerHTML = `
+                <p><strong>Current User:</strong> ${currentUser ? currentUser.email : 'Not logged in'}</p>
+                <p><strong>Total Bookings:</strong> ${bookings.length}</p>
+                <p><strong>Selected Date:</strong> ${selectedDate || 'None'}</p>
+                <p><strong>Selected Lake:</strong> ${selectedLake || 'None'}</p>
+                <p><strong>LocalStorage Keys:</strong></p>
+                <ul>
+                    <li>currentUser: ${localStorage.getItem('currentUser') ? 'Yes' : 'No'}</li>
+                    <li>tempUserData: ${localStorage.getItem('tempUserData') ? 'Yes' : 'No'}</li>
+                    <li>bignor_park_bookings: ${localStorage.getItem('bignor_park_bookings') ? 'Yes' : 'No'}</li>
+                    <li>users: ${localStorage.getItem('users') ? 'Yes' : 'No'}</li>
+                </ul>
+                <details>
+                    <summary>Bookings Data (click to expand)</summary>
+                    <pre>${JSON.stringify(bookings, null, 2)}</pre>
+                </details>
+            `;
+        }
+        
+        // Clear all bookings
+        function clearAllBookings() {
+            if (confirm('Clear ALL bookings? This cannot be undone!')) {
+                bookings = [];
+                localStorage.removeItem('bignor_park_bookings');
+                displayActiveBooking();
+                log('All bookings cleared', 'warning');
+                alert('All bookings cleared');
+            }
+        }
+        
+        // Run on page load
+        window.addEventListener('DOMContentLoaded', init);
+        
+        log('Script loaded successfully', 'info');
+    </script>
+</body>
+</html>
+
+
+
+
+

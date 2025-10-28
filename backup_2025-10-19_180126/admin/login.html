@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Bignor Park</title>
+    <link rel="stylesheet" href="../index-clean.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <style>
+        .admin-login-container {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(72, 209, 204, 0.05) 0%, rgba(255, 213, 0, 0.05) 100%);
+        }
+
+        .admin-login-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 48px;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .admin-login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .admin-login-header img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+        }
+
+        .admin-login-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .admin-login-header p {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        .admin-form-group {
+            margin-bottom: 24px;
+        }
+
+        .admin-form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .admin-form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .admin-form-group input:focus {
+            outline: none;
+            border-color: #48d1cc;
+            box-shadow: 0 0 0 3px rgba(72, 209, 204, 0.1);
+        }
+
+        .admin-form-group input.error {
+            border-color: #dc3545;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .admin-submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(72, 209, 204, 0.3);
+        }
+
+        .admin-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 209, 204, 0.4);
+        }
+
+        .admin-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .admin-back-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .admin-back-link a {
+            color: #48d1cc;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .admin-back-link a:hover {
+            color: #20b2aa;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 4px;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="header-wrapper">
+            <div class="logo-area">
+                <img src="../carp-logo.png" alt="Bignor Park" class="logo-img">
+                <div class="logo-title">
+                    <h1>Bignor Park</h1>
+                    <span>CARP FISHERY</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <a href="../home.html">Home</a>
+                <a href="../home.html#lakes">Lakes</a>
+                <a href="../home.html#gallery">Gallery</a>
+                <a href="../booking.html">Book</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Admin Login Container -->
+    <div class="admin-login-container">
+        <div class="admin-login-card">
+            <div class="admin-login-header">
+                <img src="../carp-logo.png" alt="Admin">
+                <h1>Admin Login</h1>
+                <p>Access the administration panel</p>
+            </div>
+
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+                <div class="admin-form-group">
+                    <label for="adminEmail">Email Address</label>
+                    <input
+                        type="email"
+                        id="adminEmail"
+                        name="email"
+                        required
+                        placeholder="admin@bignorpark.com"
+                        autocomplete="email"
+                    >
+                    <span class="error-message" id="emailError">Please enter a valid email</span>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="adminPassword">Password</label>
+                    <div class="password-input-wrapper">
+                        <input
+                            type="password"
+                            id="adminPassword"
+                            name="password"
+                            required
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility()">
+                            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="error-message" id="passwordError">Password is required</span>
+                </div>
+
+                <button type="submit" class="admin-submit-btn" id="submitBtn">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="admin-back-link">
+                <a href="../home.html">&larr; Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-auth.js"></script>
+    <script>
+        // Check if already logged in as admin
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isAdmin()) {
+                console.log('[Admin Login] Already logged in, redirecting to dashboard...');
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('adminPassword');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        }
+
+        function handleAdminLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+            document.querySelectorAll('input').forEach(el => el.classList.remove('error'));
+
+            // Validate
+            let hasError = false;
+
+            if (!email || !email.includes('@')) {
+                document.getElementById('emailError').classList.add('show');
+                document.getElementById('adminEmail').classList.add('error');
+                hasError = true;
+            }
+
+            if (!password || password.length < 6) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+                document.getElementById('passwordError').classList.add('show');
+                document.getElementById('adminPassword').classList.add('error');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in...';
+
+            // Attempt login
+            if (loginAdmin(email, password)) {
+                // Success - redirect to dashboard
+                window.location.href = 'dashboard.html';
+            } else {
+                // Failed
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign In';
+                document.getElementById('passwordError').textContent = 'Invalid email or password';
+                document.getElementById('passwordError').classList.add('show');
+                document.getElementById('adminPassword').classList.add('error');
+            }
+        }
+    </script>
+</body>
+</html>

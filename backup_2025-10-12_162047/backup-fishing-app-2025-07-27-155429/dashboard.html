@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bignor Park - CARP FISHERY</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+    <!-- Fixed Header -->
+    <header class="page-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="carp-logo.png" alt="Carp Logo" class="logo">
+                <div class="logo-text">
+                    <h1>Bignor Park</h1>
+                    <h2>CARP FISHERY</h2>
+                </div>
+            </div>
+            <div class="header-nav">
+                <span id="userNameDisplay">Member</span>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section with Slideshow -->
+    <section class="hero-section">
+        <div class="hero-image">
+            <img src="HCRU2383.JPG" alt="Bignor Lake" class="lake-hero active" id="slide1">
+            <img src="wood-pool-1.jpg" alt="Wood Pool" class="lake-hero" id="slide2">
+            <img src="WhatsApp Image 2025-06-14 at 09.54.49_24b1de56.jpg" alt="Fishing Lake" class="lake-hero" id="slide3">
+            <img src="WhatsApp Image 2025-06-14 at 09.54.33_09f05893.jpg" alt="Fishing Lake" class="lake-hero" id="slide4">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <div class="location-badge">
+                        <svg class="pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>9 Premium Carp Fishery</span>
+                    </div>
+                    <h1>
+                        <span class="text-white">Experience the Best</span>
+                        <span class="text-yellow">Carp Fishing</span>
+                        <span class="text-white">in West</span>
+                        <span class="text-yellow">Sussex</span>
+                    </h1>
+                    <p class="hero-description">
+                        Two pristine lakes offering exceptional carp fishing experiences. From peaceful beginners sessions to trophy hunting adventures.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons at Bottom of Image -->
+        <div class="action-buttons">
+            <div class="button-container">
+                <button onclick="window.location.href='booking.html'" class="action-btn">
+                    <span class="btn-text">Book a Spot</span>
+                    <span class="btn-description">Reserve your fishing session on our pristine lakes</span>
+                </button>
+                
+                <button onclick="showLakesInfo()" class="action-btn">
+                    <span class="btn-text">Available Lakes</span>
+                    <span class="btn-description">Explore our two beautiful fishing locations</span>
+                </button>
+                
+                <button onclick="showRules()" class="action-btn">
+                    <span class="btn-text">Rules</span>
+                    <span class="btn-description">Important guidelines for safe and responsible fishing</span>
+                </button>
+                
+                <button onclick="showLiveFeed()" class="action-btn">
+                    <span class="btn-text">Live Feed</span>
+                    <span class="btn-description">Real-time updates from the lakes</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hidden Sections for Modal-like Functionality -->
+    <div id="lakesModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Available Lakes</h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="lakes-info">
+                <div class="lake-info-card">
+                    <h3>Bignor Main Lake</h3>
+                    <p>Our largest lake featuring spacious waters perfect for carp fishing. Maximum 3 anglers per session.</p>
+                    <div class="lake-features">
+                        <span class="feature">Large carp</span>
+                        <span class="feature">Spacious waters</span>
+                        <span class="feature">3 spots available</span>
+                    </div>
+                </div>
+                <div class="lake-info-card">
+                    <h3>Wood Pool</h3>
+                    <p>Intimate fishing spot surrounded by natural woodland. Perfect for peaceful angling sessions. Maximum 2 anglers per session.</p>
+                    <div class="lake-features">
+                        <span class="feature">Intimate setting</span>
+                        <span class="feature">Woodland surroundings</span>
+                        <span class="feature">2 spots available</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rulesModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Fishing Rules</h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="rules-content">
+                <div class="rule-section">
+                    <h3>Estate Rules</h3>
+                    <ul>
+                        <li>No littering - take all rubbish home</li>
+                        <li>No fires or barbecues</li>
+                        <li>No dogs allowed</li>
+                        <li>No swimming or wading</li>
+                        <li>Respect other anglers and keep noise to a minimum</li>
+                    </ul>
+                </div>
+                <div class="rule-section">
+                    <h3>Fishing Rules</h3>
+                    <ul>
+                        <li>Catch and release only</li>
+                        <li>Use barbless hooks only</li>
+                        <li>No keep nets</li>
+                        <li>Maximum 2 rods per angler</li>
+                        <li>No live baiting</li>
+                        <li>Handle fish with care and wet hands</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="liveFeedModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Live Feed</h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="live-feed-container">
+                <div class="live-header">
+                    <svg class="antenna-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+                    </svg>
+                    <h3>Live from the Lakes</h3>
+                </div>
+                <div class="live-status-bar">
+                    <span class="live-indicator">
+                        <span class="live-dot"></span>
+                        LIVE
+                    </span>
+                    <span class="update-time">Updated just now</span>
+                </div>
+                <div id="liveSessions" class="live-sessions">
+                    <!-- Live sessions will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html> 

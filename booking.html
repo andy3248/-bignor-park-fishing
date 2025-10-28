@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bignor Park - Book Your Session</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'teal': {
+                            500: '#48d1cc',
+                            600: '#20b2aa',
+                            700: '#1a9a95'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="booking-styles.css">
+    <link rel="stylesheet" href="user-dropdown.css">
+</head>
+<body class="font-sans antialiased">
+    <header class="page-header">
+        <div class="header-content">
+            <img src="carp-logo.png" alt="Bignor Park Logo" class="header-logo">
+            <div class="header-text">
+                <h1>Bignor Park</h1>
+                <h2>CARP FISHERY</h2>
+            </div>
+        </div>
+        <div class="user-info">
+            <button id="backToHomeBtn" class="back-to-home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Back to Home
+            </button>
+            
+            <!-- User Dropdown Menu -->
+            <div class="user-menu-container" id="userMenuContainer">
+                <button class="user-menu-button" id="userMenuButton" aria-haspopup="true" aria-expanded="false">
+                    <div class="user-avatar" id="userAvatar">
+                        <span id="userInitials">M</span>
+                    </div>
+                    <span id="userName" class="user-name">Member</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                
+                <div class="user-dropdown-menu" id="userDropdownMenu" role="menu" aria-hidden="true">
+                    <div class="dropdown-header">
+                        <div class="dropdown-user-info">
+                            <div class="dropdown-avatar" id="dropdownAvatar">
+                                <span id="dropdownInitials">M</span>
+                            </div>
+                            <div class="dropdown-user-details">
+                                <div class="dropdown-user-name" id="dropdownUserName">Member</div>
+                                <div class="dropdown-user-email" id="dropdownUserEmail">member@email.com</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="home.html" class="dropdown-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="#" class="dropdown-item" role="menuitem" onclick="logout(); return false;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Sign Out</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="booking-container">
+
+        <!-- Booking Tabs -->
+        <div class="booking-tabs-container">
+            <div class="booking-tabs">
+                <button class="tab-btn active" data-tab="calendar-booking">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Calendar Booking
+                </button>
+                <button class="tab-btn" data-tab="active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
+                    </svg>
+                    Active Booking
+                </button>
+                <button class="tab-btn" data-tab="lakes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Available Lakes
+                </button>
+                <button class="tab-btn" data-tab="rules">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Rules
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Calendar Booking Tab -->
+                <div id="calendar-booking" class="tab-pane active">
+                    <div class="calendar-booking-container">
+                        <!-- Booking Restriction Notice -->
+                        <div class="restriction-notice" id="restrictionNotice" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <div>
+                                <strong>Booking Restriction Active</strong>
+                                <p id="restrictionMessage">You can only make one booking every 12 hours. Please wait before making another booking.</p>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Section -->
+                        <div class="calendar-section">
+                            <div class="calendar-header">
+                                <div class="calendar-step">
+                                    <div class="step-number">1</div>
+                                    <span>Select Date</span>
+                                </div>
+                                <div class="calendar-title-with-logo">
+                                    <img src="carp-logo.png" alt="Bignor Park Logo" class="calendar-logo">
+                                    <h2>BIGNOR PARK CARP FISHERY</h2>
+                                </div>
+                            </div>
+
+                            <!-- Month Selector -->
+                            <div class="month-selector-wrapper">
+                                <button class="month-nav-btn month-prev" aria-label="Previous months">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="month-selector">
+                                    <button class="month-btn" data-month="0">Jan</button>
+                                    <button class="month-btn" data-month="1">Feb</button>
+                                    <button class="month-btn" data-month="2">Mar</button>
+                                    <button class="month-btn" data-month="3">Apr</button>
+                                    <button class="month-btn" data-month="4">May</button>
+                                    <button class="month-btn" data-month="5">Jun</button>
+                                    <button class="month-btn" data-month="6">Jul</button>
+                                    <button class="month-btn" data-month="7">Aug</button>
+                                    <button class="month-btn" data-month="8">Sep</button>
+                                    <button class="month-btn" data-month="9">Oct</button>
+                                    <button class="month-btn" data-month="10">Nov</button>
+                                    <button class="month-btn" data-month="11">Dec</button>
+                                </div>
+                                <button class="month-nav-btn month-next" aria-label="Next months">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Calendar Grid -->
+                            <div class="calendar-grid">
+                                <div class="calendar-header-row">
+                                    <div>Mon</div>
+                                    <div>Tue</div>
+                                    <div>Wed</div>
+                                    <div>Thu</div>
+                                    <div>Fri</div>
+                                    <div>Sat</div>
+                                    <div>Sun</div>
+                                </div>
+                                <div class="calendar-days" id="calendarDays">
+                                    <!-- Calendar days will be populated by JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Availability Legend -->
+                            <div class="availability-legend">
+                                <div class="legend-item">
+                                    <span class="legend-circle available"></span>
+                                    <span>Available</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-circle unavailable"></span>
+                                    <span>Unavailable</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden date input for form submission -->
+                            <input type="date" id="booking-date" style="position: absolute; opacity: 0; pointer-events: none;" />
+                        </div>
+
+                        <!-- Lake Availability Section -->
+                        <div class="lake-availability-section" id="lakeAvailability" style="display: none;">
+                            <div class="availability-header">
+                                <div class="calendar-step">
+                                    <div class="step-number">2</div>
+                                    <span>Choose Lake</span>
+                                </div>
+                                <h3>Available Lakes for <span id="selectedDateDisplay"></span></h3>
+                            </div>
+
+                            <div class="lake-availability-grid">
+                                <div class="lake-availability-card" data-lake="bignor">
+                                    <div class="lake-card-header">
+                                        <h4>Bignor Main Lake</h4>
+                                        <div class="availability-status" id="bignorStatus">Available</div>
+                                    </div>
+                                    <div class="lake-card-content">
+                                        <p>Up to 35lbs carp • 3 anglers max • Premium experience</p>
+                                        <div class="lake-slots">
+                                            <span id="bignorSlots">3 of 3 spots available</span>
+                                        </div>
+                                    </div>
+                                    <button class="book-lake-btn" data-lake="bignor" id="bookBignorBtn">Book Bignor Lake</button>
+                                </div>
+
+                                <div class="lake-availability-card" data-lake="wood">
+                                    <div class="lake-card-header">
+                                        <h4>Wood Pool</h4>
+                                        <div class="availability-status" id="woodStatus">Available</div>
+                                    </div>
+                                    <div class="lake-card-content">
+                                        <p>Up to 25lbs carp • 2 anglers max • Peaceful setting</p>
+                                        <div class="lake-slots">
+                                            <span id="woodSlots">2 of 2 spots available</span>
+                                        </div>
+                                    </div>
+                                    <button class="book-lake-btn" data-lake="wood" id="bookWoodBtn">Book Wood Pool</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Booking Form Section -->
+                        <div class="booking-form-section" id="bookingForm" style="display: none;">
+                            <div class="form-header">
+                                <div class="calendar-step">
+                                    <div class="step-number">3</div>
+                                    <span>Confirm Booking</span>
+                                </div>
+                                <h3>Book <span id="selectedLakeDisplay"></span> for <span id="confirmDateDisplay"></span></h3>
+                            </div>
+
+                            <div class="booking-form">
+                                <div class="form-group">
+                                    <label>Maintenance Reports (Optional)</label>
+                                    <textarea id="bookingNotes" placeholder="Report any maintenance issues or concerns about the lake..."></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="cancel-btn" id="cancelBookingBtn">Cancel</button>
+                                    <button class="submit-booking-btn" id="confirmBookingBtn">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                        Confirm Booking
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Booking Tab -->
+                <div id="active" class="tab-pane">
+                    <div class="active-booking-container">
+                        <div class="active-booking-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3>Your Active Booking</h3>
+                                <p>Manage your current fishing session</p>
+                            </div>
+                            <button id="toggleActiveBookingBtn" class="toggle-booking-btn" onclick="toggleActiveBookingContent()" style="background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
+                                <svg id="toggleIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; transition: transform 0.3s ease;">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                                <span id="toggleText">Collapse</span>
+                            </button>
+                        </div>
+
+                        <div class="active-booking-content" id="activeBookingContent" style="transition: all 0.3s ease;">
+                            <!-- Active booking will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Lakes Tab -->
+                <div id="lakes" class="tab-pane">
+                    <div class="lakes-info">
+                        <div class="lake-info-card">
+                            <img src="HCRU2383.JPG" alt="Bignor Main Lake" class="lake-card-image">
+                            <h3>Bignor Main Lake</h3>
+                            <p>Our largest lake featuring spacious waters perfect for carp fishing. Maximum 3 anglers per session.</p>
+                            <div class="lake-features">
+                                <span class="feature">Large carp</span>
+                                <span class="feature">Spacious waters</span>
+                                <span class="feature">3 spots available</span>
+                            </div>
+                            <button class="book-lake-modal-btn switch-to-booking-tab">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Book This Lake
+                            </button>
+                        </div>
+                        <div class="lake-info-card">
+                            <img src="WhatsApp Image 2025-06-14 at 09.56.15_83f78450.jpg" alt="Wood Pool" class="lake-card-image">
+                            <h3>Wood Pool</h3>
+                            <p>A peaceful smaller lake perfect for beginners and those seeking a quieter fishing experience. Maximum 2 anglers per session.</p>
+                            <div class="lake-features">
+                                <span class="feature">Peaceful setting</span>
+                                <span class="feature">Beginner friendly</span>
+                                <span class="feature">2 spots available</span>
+                            </div>
+                            <button class="book-lake-modal-btn switch-to-booking-tab">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Book This Lake
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rules Tab -->
+                <div id="rules" class="tab-pane">
+                    <div class="rules-content">
+                        <!-- Header Info -->
+                        <div class="rules-header-banner">
+                            <h3>Bignor Park Carp Fishery - Main Lake</h3>
+                            <p>New Season Starts 1st May 2025</p>
+                            <div class="bailiff-info">
+                                <strong>Appointed Bailiffs:</strong> Liam Wadey & Aaron Greenfield<br>
+                                <span>Liam: 07713 147857 | Aaron: 07816 674172</span>
+                            </div>
+                        </div>
+
+                        <!-- Estate & Vehicle Rules -->
+                        <div class="rule-section">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+                                </svg>
+                                Estate & Vehicle Rules
+                            </h4>
+                            <ul>
+                                <li>All Vehicles must display their Membership Cards whilst on the Estate</li>
+                                <li>All Vehicles must be parked by the lake entrance and not outside the Estate cottages or Shooting Hut</li>
+                                <li>When Driving on the Estate please do not exceed 20mph</li>
+                                <li>All Gates must be kept closed and vehicle access kept clear</li>
+                                <li>Please be courteous and respectful - Bignor Park is the Home of Lord and Lady Mersey</li>
+                            </ul>
+                        </div>
+
+                        <!-- Fishing Equipment Rules -->
+                        <div class="rule-section">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                                    <path d="M12 2l-3 4h6l-3-4z"></path>
+                                </svg>
+                                Fishing Equipment & Tackle
+                            </h4>
+                            <ul>
+                                <li>Each Member must be in possession of a Valid Rod License</li>
+                                <li><strong>3 Rods Maximum</strong></li>
+                                <li><strong>3 Anglers Maximum</strong></li>
+                                <li><strong>Micro Barbed hooks only</strong></li>
+                                <li>No Rods left unattended at any time</li>
+                                <li><strong>Minimum 15lb Mainline</strong> - no Braid except Marker rods</li>
+                                <li>No Naked Mainline - please use 24inch min tubing/Leaders</li>
+                                <li>No Fixed Leads - if using lead clips please do not jam the tail rubber all the way on</li>
+                                <li>When fishing to Snags, Lily Pads or Thick weed please fish locked up</li>
+                                <li><strong>Minimum 42" Landing Net Required</strong></li>
+                                <li><strong>Large Unhooking Mat and Floatation Weigh Sling Required</strong></li>
+                            </ul>
+                        </div>
+
+                        <!-- Fish Handling & Care -->
+                        <div class="rule-section highlight">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 20a2.4 2.4 0 002 1 2.4 2.4 0 002-1 2.4 2.4 0 012-1 2.4 2.4 0 012 1 2.4 2.4 0 002 1 2.4 2.4 0 002-1 2.4 2.4 0 012-1 2.4 2.4 0 012 1 2.4 2.4 0 002 1 2.4 2.4 0 002-1"></path>
+                                </svg>
+                                Fish Handling & Care
+                            </h4>
+                            <ul>
+                                <li><strong>Please Dip Mats, Slings and Nets in BioVx Bin at gate before you fish</strong></li>
+                                <li>Please only retain carp for short period of time while you weigh and photograph them</li>
+                                <li>Please rest the fish in a retaining sling to recover before releasing them</li>
+                                <li><strong>All hook holds must be treated using Propolis</strong></li>
+                                <li class="important-rule">All captures & weights <strong>MUST</strong> be reported to Michael - Please also include Pictures (used to monitor Fish Progress)</li>
+                                <li class="important-rule">Any Catfish caught must be retained - a sling is provided in the green box by the gate and please notify the Bailiff team</li>
+                            </ul>
+                        </div>
+
+                        <!-- Booking & Session Rules -->
+                        <div class="rule-section">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Booking & Session Rules
+                            </h4>
+                            <ul>
+                                <li><strong>No Block Bookings</strong> (book one session at a time)</li>
+                                <li><strong>24Hr or Overnight Fishing Must be Booked with Michael</strong></li>
+                                <li>24Hr Means from Midday to Midday</li>
+                                <li>Do Not use Pellet from the Fish feed Bin for session fishing</li>
+                                <li><strong>Members must Attend at least 1 work party per year</strong></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- General Conduct -->
+                        <div class="rule-section">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                General Conduct & Safety
+                            </h4>
+                            <ul>
+                                <li>No Non/or Fishing Guests allowed</li>
+                                <li><strong>No Loud Music or Shouting across the lake</strong></li>
+                                <li>No Drugs or excessive Alcohol consumption</li>
+                                <li><strong>No Open Fires</strong> - this is an Estate rule</li>
+                                <li><strong>No Swimming in the Lake under any circumstances</strong></li>
+                                <li>The use of Waders are at one's own risk</li>
+                                <li><strong>All Litter must be taken with you</strong></li>
+                                <li>Do Not under any circumstance cut out land or water vegetation around the lake unless pre-approved by a Bailiff first (aquatic weed removal is allowed)</li>
+                                <li>The Estate Lake Boat is for the use of the Family and Lake Maintenance only</li>
+                            </ul>
+                        </div>
+
+                        <!-- Social Media & Reporting -->
+                        <div class="rule-section">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
+                                Social Media & Reporting
+                            </h4>
+                            <ul>
+                                <li>We no longer have a social media Ban at Bignor - any captures can be published on Private or Public domains</li>
+                                <li><strong>We only ask you do not disclose location</strong></li>
+                            </ul>
+                        </div>
+
+                        <!-- Membership -->
+                        <div class="rule-section">
+                            <h4>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                                Membership
+                            </h4>
+                            <ul>
+                                <li><strong>Membership Fees are Due May 1st each Year</strong></li>
+                            </ul>
+                        </div>
+
+                        <!-- Warning Section -->
+                        <div class="rules-warning-box">
+                            <h3>IMPORTANT WARNINGS</h3>
+                            <p class="warning-text"><strong>Your Membership will be at risk if any of the above rules are broken.</strong></p>
+                            <p class="warning-text"><strong>Any Flouting of these rules will result in immediate termination of Membership.</strong></p>
+                            <div class="contact-box">
+                                <p><strong>Any problems must be reported to:</strong></p>
+                                <p>Ross Grimster: <a href="tel:07979521146">07979 521146</a></p>
+                                <p>Michael Boyle: <a href="tel:07749135709">07749 135709</a></p>
+                            </div>
+                        </div>
+
+                        <!-- Thank You -->
+                        <div class="rules-footer">
+                            <p>We would both like to thank you for your support and hard work over the past year.</p>
+                            <p><strong>Have a great Season. Ross & Michael</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Booking Success Modal (Yellowave Style) -->
+    <div id="bookingSuccessModal" class="booking-modal-overlay" style="display: none;">
+        <div class="booking-modal-card">
+            <!-- Logo at top -->
+            <div class="modal-logo-section">
+                <img src="carp-logo.png" alt="Bignor Park" class="modal-logo">
+                <div class="modal-branding">
+                    <span class="modal-brand-name">Bignor Park</span>
+                    <span class="modal-brand-sub">Carp Fishery</span>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="modal-content">
+                <h1 class="modal-title">Booking Confirmed!</h1>
+                <p class="modal-message">Thank you! Your booking is confirmed.</p>
+                <p class="modal-submessage">You can view your booking details in the Active Booking tab below.</p>
+                
+                <!-- Your Fishing Session Section -->
+                <div class="modal-session-section">
+                    <div class="session-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="session-icon">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span class="session-title">Your Fishing Session</span>
+                    </div>
+                    
+                    <!-- Date -->
+                    <div class="session-date" id="modalDate">-</div>
+                    
+                    <!-- Time Badge -->
+                    <div class="time-badge" id="modalTimeBadge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="modalStartTime">00:00 UTC</span>
+                    </div>
+                    
+                    <!-- Lake Name -->
+                    <h2 class="lake-name" id="modalLakeName">-</h2>
+                    
+                    <!-- Lake Description -->
+                    <p class="lake-description" id="modalLakeDescription">Bignor Park Carp Fishery</p>
+                    
+                    <!-- Duration -->
+                    <p class="session-duration">24 Hours</p>
+                    
+                    <!-- Booking ID -->
+                    <div class="booking-reference">
+                        <span>Booking Reference: </span>
+                        <strong id="modalBookingId">-</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Button -->
+            <div class="modal-footer">
+                <button class="btn-modal-close" onclick="closeBookingModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts in order (non-module for compatibility) -->
+    <!-- Load booking system scripts in correct order -->
+    <script src="activeBooking.js"></script>
+    <script src="booking-integration-utc.js"></script>
+    <script src="activeBookingCard.js"></script>
+    <script src="user-dropdown.js"></script>
+    <script src="lakes-standalone.js"></script>
+    <script src="active-booking-card-component.js"></script>
+    <script src="booking-standalone.js"></script>
+    
+    <!-- Initialize active booking card on this page -->
+    <script>
+        // Initialize active booking display when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Booking Page] Initializing active booking card...');
+            
+            // Get current user
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (currentUser && currentUser.email) {
+                console.log('[Booking Page] User logged in:', currentUser.email);
+                
+                // Wait for ActiveBookingSystem to be available
+                setTimeout(function() {
+                    if (window.ActiveBookingSystem) {
+                        // Clear expired bookings first
+                        window.ActiveBookingSystem.clearIfExpired(currentUser.email);
+                        
+                        // Get active booking
+                        const booking = window.ActiveBookingSystem.getActiveBooking(currentUser.email);
+                        console.log('[Booking Page] Active booking:', booking);
+                        
+                        // Render the booking card
+                        const container = document.getElementById('activeBookingContent');
+                        if (container) {
+                            if (booking && window.renderActiveBookingCard) {
+                                renderActiveBookingCard(currentUser.email, container);
+                            } else if (booking) {
+                                // Fallback: Use simple display
+                                const display = window.ActiveBookingSystem.formatBookingForDisplay(booking);
+                                container.innerHTML = `
+                                    <div style="padding: 20px; text-align: center;">
+                                        <h3 style="color: #48d1cc; margin-bottom: 15px;">
+                                            ${display.isActive ? '🎣 Active Booking' : display.isUpcoming ? '📅 Upcoming Booking' : '✅ Completed'}
+                                        </h3>
+                                        <p style="font-size: 1.2rem; font-weight: 700; color: #2c3e50; margin-bottom: 10px;">
+                                            ${booking.lakeName}
+                                        </p>
+                                        <p style="color: #6c757d; margin-bottom: 8px;">
+                                            📅 ${display.sessionDate}
+                                        </p>
+                                        <p style="color: #6c757d; margin-bottom: 15px;">
+                                            ⏰ ${display.startTime} UTC
+                                        </p>
+                                        <button onclick="window.location.href='my-bookings.html'" style="background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                            View Full Details
+                                        </button>
+                                    </div>
+                                `;
+                            } else {
+                                // No booking
+                                container.innerHTML = `
+                                    <div style="padding: 40px; text-align: center; color: #6c757d;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; margin: 0 auto 15px; color: #48d1cc;">
+                                            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
+                                        </svg>
+                                        <h4 style="color: #2c3e50; margin-bottom: 10px;">No Active Booking</h4>
+                                        <p>You don't have any active bookings at the moment.</p>
+                                        <p>Use the Calendar Booking tab below to make a reservation.</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                }, 100);
+            } else {
+                console.log('[Booking Page] No user logged in');
+            }
+        });
+    </script>
+</body>
+</html> 

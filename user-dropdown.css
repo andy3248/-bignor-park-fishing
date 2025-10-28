@@ -1,0 +1,434 @@
+/* User Dropdown Menu Styles */
+
+/* Container */
+.user-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* User Menu Button */
+.user-menu-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: white;
+    border: 2px solid #48d1cc;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.user-menu-button:hover {
+    background: #f0fffe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(72, 209, 204, 0.2);
+}
+
+.user-menu-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(72, 209, 204, 0.3);
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.user-name {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    stroke: #48d1cc;
+    transition: transform 0.3s ease;
+}
+
+.user-menu-button[aria-expanded="true"] .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.user-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 280px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.user-dropdown-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Dropdown Header */
+.dropdown-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+}
+
+.dropdown-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dropdown-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #48d1cc;
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-user-details {
+    flex: 1;
+    color: white;
+}
+
+.dropdown-user-name {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.dropdown-user-email {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 8px 0;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+    border-left-color: #48d1cc;
+    padding-left: 22px;
+}
+
+.dropdown-item:focus {
+    outline: none;
+    background: #f0fffe;
+    border-left-color: #48d1cc;
+}
+
+.dropdown-item svg {
+    width: 20px;
+    height: 20px;
+    stroke: #48d1cc;
+    flex-shrink: 0;
+}
+
+.dropdown-item span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Danger Item */
+.dropdown-item.danger {
+    color: #dc3545;
+}
+
+.dropdown-item.danger svg {
+    stroke: #dc3545;
+}
+
+.dropdown-item.danger:hover {
+    background: #fff5f5;
+    border-left-color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-dropdown-menu {
+        width: 240px;
+    }
+    
+    .user-name {
+        display: none;
+    }
+    
+    .user-menu-button {
+        padding: 8px 12px;
+    }
+}
+
+/* Accessibility - Focus visible */
+.user-menu-button:focus-visible {
+    outline: 2px solid #48d1cc;
+    outline-offset: 2px;
+}
+
+.dropdown-item:focus-visible {
+    outline: 2px solid #48d1cc;
+    outline-offset: -2px;
+}
+
+/* Animation keyframes */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-dropdown-menu.active {
+    animation: fadeInDown 0.3s ease;
+}
+
+/* Booking Status Indicator in Dropdown */
+.dropdown-booking-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0 0 0;
+    margin-top: 12px;
+    border-top: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dropdown-booking-status:hover {
+    background: #f8f9fa;
+    margin-left: -12px;
+    margin-right: -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 8px;
+}
+
+.booking-status-dot {
+    width: 10px;
+    height: 10px;
+    background: #48d1cc;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+.booking-status-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.booking-status-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.booking-status-details {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+.dropdown-booking-status:hover .booking-status-details {
+    color: #48d1cc;
+}
+
+/* Booking Mini Card Styles */
+.booking-mini-card {
+    width: 100%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.booking-mini-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #48d1cc;
+}
+
+.booking-mini-logo {
+    display: flex;
+    align-items: center;
+}
+
+.booking-mini-logo img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #48d1cc;
+    box-shadow: 0 2px 4px rgba(72, 209, 204, 0.3);
+}
+
+.booking-mini-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.status-emoji {
+    font-size: 1rem;
+}
+
+.status-text {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.booking-mini-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.booking-mini-lake {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.booking-mini-lake svg {
+    color: #48d1cc;
+    flex-shrink: 0;
+}
+
+.booking-mini-lake strong {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.booking-mini-datetime {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 24px;
+}
+
+.booking-mini-date,
+.booking-mini-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.booking-mini-date svg,
+.booking-mini-time svg {
+    color: #48d1cc;
+    flex-shrink: 0;
+}
+
+.booking-mini-footer {
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px solid #e9ecef;
+}
+
+.booking-mini-footer small {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Hover effect for the mini card */
+.dropdown-booking-status:hover .booking-mini-card {
+    box-shadow: 0 4px 12px rgba(72, 209, 204, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Animation for status indicator */
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.booking-mini-status {
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+
