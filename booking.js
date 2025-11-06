@@ -177,13 +177,38 @@ async function loadBookingsFromStorage() {
         
         // Get all active bookings from API
         const response = await BignorAPI.bookings.getMyBookings(100);
-        bookings = response.bookings || [];
+        const apiBookings = response.bookings || [];
         
-        console.log('Loaded bookings from API:', bookings);
+        // Map API format to frontend format
+        bookings = apiBookings.map(b => ({
+            id: b.bookingId || b.id,
+            userId: currentUser?.email || '',
+            user_id: currentUser?.id,
+            userName: currentUser?.fullName || `${currentUser?.firstName} ${currentUser?.lastName}`,
+            lake: getLakeIdFromName(b.lakeName), // Convert lake name back to ID
+            lakeName: b.lakeName,
+            date: b.bookingDate, // API uses bookingDate, frontend expects date
+            bookingDate: b.bookingDate,
+            notes: b.notes || '',
+            status: b.status === 'active' ? 'upcoming' : b.status, // Map 'active' to 'upcoming'
+            createdAt: b.createdAt
+        }));
+        
+        console.log('Loaded and mapped bookings from API:', bookings);
     } catch (error) {
         console.error('Error loading bookings from API:', error);
         bookings = [];
     }
+}
+
+// Helper function to convert lake name to ID
+function getLakeIdFromName(lakeName) {
+    const lakeMap = {
+        'Bignor Lake': '1',
+        'Fox Lake': '2',
+        'Syndicate Lake': '3'
+    };
+    return lakeMap[lakeName] || '1';
 }
 
 // Note: saveBookingsToStorage is deprecated - bookings are now saved via API calls

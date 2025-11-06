@@ -3,6 +3,22 @@
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 let selectedDate = null;
+let allBookingsCache = []; // Cache for all bookings from API
+
+// Load all bookings from API
+async function loadAllBookings() {
+    try {
+        console.log('Loading all bookings from API...');
+        const response = await BignorAPI.admin.getAllBookings({});
+        allBookingsCache = response.bookings || [];
+        console.log('Loaded', allBookingsCache.length, 'bookings from API');
+        return allBookingsCache;
+    } catch (error) {
+        console.error('Error loading bookings from API:', error);
+        allBookingsCache = [];
+        return [];
+    }
+}
 
 // Get initials from name (helper function)
 function getInitials(name) {
@@ -31,10 +47,10 @@ function formatNameWithInitial(name) {
 }
 
 // Initialize calendar
-function initializeCalendar() {
+async function initializeCalendar() {
     console.log('=== INITIALIZING ADMIN CALENDAR ===');
-    console.log('All bookings:', localStorage.getItem('allBookings'));
-    console.log('Current user bookings:', Object.keys(localStorage).filter(k => k.includes('activeBooking')));
+    // Load all bookings from API
+    await loadAllBookings();
     renderCalendar(currentYear, currentMonth);
 }
 
@@ -161,33 +177,28 @@ function createDateCell(year, month, day, isOtherMonth) {
 function getBookingCountsForDate(dateStr) {
     const counts = {
         mainLake: 0,
-        woodPool: 0
+        woodPool: 0,
+        foxLake: 0,
+        syndicateLake: 0
     };
     
     try {
-        // Get all bookings from both storage locations
-        const allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        const bignorBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
-        
-        // Combine and deduplicate bookings
-        const allBookingsMap = new Map();
-        [...allBookings, ...bignorBookings].forEach(booking => {
-            if (booking.date === dateStr && booking.status !== 'cancelled') {
-                allBookingsMap.set(booking.id, booking);
-            }
+        // Filter bookings from cache for the specific date
+        const dateBookings = allBookingsCache.filter(booking => {
+            const bookingDate = booking.bookingDate || booking.booking_date;
+            return bookingDate === dateStr && booking.status !== 'cancelled';
         });
         
         // Count bookings by lake
-        allBookingsMap.forEach(booking => {
-            const lakeName = booking.lakeName || booking.lake || '';
-            const lakeSlug = booking.lakeSlug || booking.lake || '';
+        dateBookings.forEach(booking => {
+            const lakeName = (booking.lakeName || booking.lake_name || '').toLowerCase();
             
-            if (lakeName.includes('Main') || lakeName.includes('Bignor') || 
-                lakeSlug === 'bignor-main' || lakeSlug === 'bignor') {
+            if (lakeName.includes('bignor')) {
                 counts.mainLake++;
-            } else if (lakeName.includes('Wood') || lakeName.includes('Pool') || 
-                       lakeSlug === 'wood-pool' || lakeSlug === 'wood') {
-                counts.woodPool++;
+            } else if (lakeName.includes('fox')) {
+                counts.foxLake++;
+            } else if (lakeName.includes('syndicate')) {
+                counts.syndicateLake++;
             }
         });
         
@@ -201,22 +212,15 @@ function getBookingCountsForDate(dateStr) {
 // Get all bookings for a specific date
 function getBookingsForDate(dateStr) {
     try {
-        // Get all bookings from both storage locations
-        const allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        const bignorBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
+        console.log('Getting bookings for date:', dateStr);
+        console.log('Total bookings in cache:', allBookingsCache.length);
         
-        console.log('All bookings in system:', allBookings.length + bignorBookings.length);
-        console.log('Filtering for date:', dateStr);
-        
-        // Combine and deduplicate bookings using Map
-        const allBookingsMap = new Map();
-        [...allBookings, ...bignorBookings].forEach(booking => {
-            if (booking.date === dateStr && booking.status !== 'cancelled') {
-                allBookingsMap.set(booking.id, booking);
-            }
+        // Filter bookings for the specific date from cache
+        const filtered = allBookingsCache.filter(booking => {
+            const bookingDate = booking.bookingDate || booking.booking_date;
+            return bookingDate === dateStr && booking.status !== 'cancelled';
         });
         
-        const filtered = Array.from(allBookingsMap.values());
         console.log('Filtered bookings:', filtered);
         return filtered;
     } catch (error) {
