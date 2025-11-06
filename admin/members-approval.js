@@ -20,9 +20,8 @@ async function renderPendingMembers() {
         const response = await BignorAPI.admin.getAllUsers();
         const users = response.users || [];
         
-        // Note: API users don't have 'status' field, so we show all non-admin users
-        // In a real approval system, you'd add an 'approved' field to the database
-        const pendingUsers = users.filter(u => !u.isAdmin);
+        // Filter for unapproved users only
+        const pendingUsers = users.filter(u => !u.isAdmin && !u.approved);
         
         // Update count badge
         countBadge.textContent = pendingUsers.length;
@@ -100,7 +99,12 @@ async function renderPendingMembers() {
                     </div>
                 </div>
                 <div class="member-card-actions">
-                    <p style="color: #48d1cc; font-weight: 600; margin: 0;">✅ Approved (Active)</p>
+                    <button class="btn-approve" onclick="approveMember(${user.id})">
+                        Approve
+                    </button>
+                    <button class="btn-reject" onclick="rejectMember(${user.id})">
+                        Reject
+                    </button>
                 </div>
             </div>
         `;
@@ -118,21 +122,20 @@ async function renderPendingMembers() {
 }
 
 // Render approved members as cards
-function renderApprovedMembers() {
+async function renderApprovedMembers() {
     const container = document.getElementById('approvedMembersContainer');
     const countBadge = document.getElementById('approvedCount');
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
     
-    // Get approved users (backward compatible with old users)
-    const approvedUsers = users.filter(u => {
-        // Old users without status field are considered approved
-        if (!u.status) return true;
-        // New users with approved status
-        return u.status === 'approved' || u.approved === true;
-    });
-    
-    // Update count badge
-    countBadge.textContent = approvedUsers.length;
+    try {
+        // Fetch users from API
+        const response = await BignorAPI.admin.getAllUsers();
+        const users = response.users || [];
+        
+        // Get approved users only
+        const approvedUsers = users.filter(u => !u.isAdmin && u.approved === true);
+        
+        // Update count badge
+        countBadge.textContent = approvedUsers.length;
     
     if (approvedUsers.length === 0) {
         container.innerHTML = `
@@ -163,18 +166,16 @@ function renderApprovedMembers() {
             year: 'numeric'
         });
         
-        const initials = getUserInitials(user.fullName);
+        // API returns firstName/lastName instead of fullName
+        const fullName = user.fullName || `${user.firstName} ${user.lastName}`;
+        const initials = getUserInitials(fullName);
         const phone = user.phone || 'Not provided';
-        const approvedBy = user.approvedBy || 'System';
-        
-        // Determine if legacy user
-        const isLegacy = !user.status;
-        const statusText = isLegacy ? 'Legacy Member' : 'Approved';
         
         // Check for profile image
-        const hasProfileImage = user.profileImage && user.profileImage.trim() !== '';
+        const profileImage = user.profileImage || user.profilePictureUrl;
+        const hasProfileImage = profileImage && profileImage.trim() !== '';
         const avatarStyle = hasProfileImage 
-            ? `style="background-image: url(${user.profileImage}); background-size: cover; background-position: center;"` 
+            ? `style="background-image: url(${profileImage}); background-size: cover; background-position: center;"` 
             : '';
         const initialsDisplay = hasProfileImage ? 'style="display: none;"' : '';
         
@@ -185,7 +186,7 @@ function renderApprovedMembers() {
                         <span ${initialsDisplay}>${initials}</span>
                     </div>
                     <div class="member-info">
-                        <h3 class="member-name">${user.fullName || 'Unknown'}</h3>
+                        <h3 class="member-name">${fullName}</h3>
                         <p class="member-email">${user.email}</p>
                     </div>
                 </div>
@@ -205,9 +206,9 @@ function renderApprovedMembers() {
                     </div>
                 </div>
                 <div class="approved-info">
-                    <strong>${statusText}</strong> ${isLegacy ? '' : `by ${approvedBy}`}
+                    <strong>✅ Approved Member</strong>
                 </div>
-                <button class="btn-remove" onclick="removeMember('${user.id}')">
+                <button class="btn-remove" onclick="removeMember(${user.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -221,87 +222,90 @@ function renderApprovedMembers() {
     });
     
     container.innerHTML = cardsHTML;
+    } catch (error) {
+        console.error('Error loading approved members:', error);
+        container.innerHTML = `
+            <div class="no-members">
+                <p style="color: #dc3545;">Error loading members. Please refresh the page.</p>
+            </div>
+        `;
+    }
 }
 
 // Approve member
-function approveMember(userId) {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-        alert('User not found.');
-        return;
+async function approveMember(userId) {
+    try {
+        // Get users to show name in confirmation
+        const response = await BignorAPI.admin.getAllUsers();
+        const user = response.users.find(u => u.id === userId);
+        
+        if (!user) {
+            alert('User not found.');
+            return;
+        }
+        
+        const fullName = user.fullName || `${user.firstName} ${user.lastName}`;
+        
+        if (!confirm(`Approve ${fullName}?\n\nEmail: ${user.email}\n\nThey will be able to log in immediately after approval.`)) {
+            return;
+        }
+        
+        // Call API to approve user
+        await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${BignorAPI.getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Refresh displays
+        await renderPendingMembers();
+        await renderApprovedMembers();
+        
+        alert(`${fullName} has been approved!\n\nThey can now log in to the system.`);
+    } catch (error) {
+        console.error('Error approving member:', error);
+        alert('Failed to approve member. Please try again.');
     }
-    
-    const user = users[userIndex];
-    
-    if (!confirm(`Approve ${user.fullName}?\n\nEmail: ${user.email}\n\nThey will be able to log in immediately after approval.`)) {
-        return;
-    }
-    
-    // Update user status
-    users[userIndex].status = 'approved';
-    users[userIndex].approved = true;
-    users[userIndex].approvedBy = getCurrentAdmin()?.fullName || 'Admin';
-    users[userIndex].approvedAt = new Date().toISOString();
-    
-    // Save to localStorage
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Log the action
-    const logs = JSON.parse(localStorage.getItem('adminLoginLogs') || '[]');
-    logs.unshift({
-        timestamp: new Date().toISOString(),
-        admin: getCurrentAdmin()?.fullName || 'Admin',
-        action: 'Member Approval',
-        success: true,
-        message: `Approved member: ${user.fullName} (${user.email})`
-    });
-    localStorage.setItem('adminLoginLogs', JSON.stringify(logs.slice(0, 100)));
-    
-    // Refresh displays
-    renderPendingMembers();
-    renderApprovedMembers();
-    
-    alert(`${user.fullName} has been approved!\n\nThey can now log in to the system.`);
 }
 
 // Reject member
-function rejectMember(userId) {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-        alert('User not found.');
-        return;
+async function rejectMember(userId) {
+    try {
+        // Get users to show name in confirmation
+        const response = await BignorAPI.admin.getAllUsers();
+        const user = response.users.find(u => u.id === userId);
+        
+        if (!user) {
+            alert('User not found.');
+            return;
+        }
+        
+        const fullName = user.fullName || `${user.firstName} ${user.lastName}`;
+        
+        if (!confirm(`WARNING: Reject ${fullName}?\n\nEmail: ${user.email}\n\nThis will DELETE their account permanently. They will need to sign up again if they wish to reapply.`)) {
+            return;
+        }
+        
+        // Call API to reject (delete) user
+        await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/reject`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${BignorAPI.getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Refresh displays
+        await renderPendingMembers();
+        await renderApprovedMembers();
+        
+        alert(`${fullName} has been rejected and removed from the system.`);
+    } catch (error) {
+        console.error('Error rejecting member:', error);
+        alert('Failed to reject member. Please try again.');
     }
-    
-    const user = users[userIndex];
-    
-    if (!confirm(`WARNING: Reject ${user.fullName}?\n\nEmail: ${user.email}\n\nThis will DELETE their account permanently. They will need to sign up again if they wish to reapply.`)) {
-        return;
-    }
-    
-    // Log the action before deletion
-    const logs = JSON.parse(localStorage.getItem('adminLoginLogs') || '[]');
-    logs.unshift({
-        timestamp: new Date().toISOString(),
-        admin: getCurrentAdmin()?.fullName || 'Admin',
-        action: 'Member Rejection',
-        success: true,
-        message: `Rejected and deleted member: ${user.fullName} (${user.email})`
-    });
-    localStorage.setItem('adminLoginLogs', JSON.stringify(logs.slice(0, 100)));
-    
-    // Remove user from array
-    users.splice(userIndex, 1);
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Refresh displays
-    renderPendingMembers();
-    renderApprovedMembers();
-    
-    alert(`${user.fullName} has been rejected and removed from the system.`);
 }
 
 // Remove approved member

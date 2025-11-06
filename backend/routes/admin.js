@@ -153,7 +153,7 @@ router.get('/users', async (req, res) => {
         const result = await db.query(`
             SELECT 
                 id, email, first_name, last_name, phone, 
-                profile_picture_url, is_admin, is_active, 
+                profile_picture_url, is_admin, is_active, approved,
                 created_at, last_login
             FROM users
             ORDER BY created_at DESC
@@ -169,6 +169,7 @@ router.get('/users', async (req, res) => {
                 profilePictureUrl: u.profile_picture_url,
                 isAdmin: u.is_admin,
                 isActive: u.is_active,
+                approved: u.approved,
                 createdAt: u.created_at,
                 lastLogin: u.last_login
             })),
@@ -448,6 +449,77 @@ router.get('/dashboard', async (req, res) => {
         res.status(500).json({
             error: 'Internal Server Error',
             message: 'Failed to get dashboard data'
+        });
+    }
+});
+
+// ============================================
+// POST /api/admin/users/:id/approve - Approve a user
+// ============================================
+
+router.post('/users/:id/approve', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const approvedUser = await db.approveUser(id);
+        
+        if (!approvedUser) {
+            return res.status(404).json({
+                error: 'Not Found',
+                message: 'User not found'
+            });
+        }
+        
+        res.json({
+            message: 'User approved successfully',
+            user: {
+                id: approvedUser.id,
+                email: approvedUser.email,
+                firstName: approvedUser.first_name,
+                lastName: approvedUser.last_name,
+                approved: approvedUser.approved
+            }
+        });
+        
+    } catch (error) {
+        console.error('Admin approve user error:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'Failed to approve user'
+        });
+    }
+});
+
+// ============================================
+// DELETE /api/admin/users/:id/reject - Reject (delete) a user
+// ============================================
+
+router.delete('/users/:id/reject', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const rejectedUser = await db.rejectUser(id);
+        
+        if (!rejectedUser) {
+            return res.status(404).json({
+                error: 'Not Found',
+                message: 'User not found'
+            });
+        }
+        
+        res.json({
+            message: 'User rejected and deleted successfully',
+            user: {
+                id: rejectedUser.id,
+                email: rejectedUser.email
+            }
+        });
+        
+    } catch (error) {
+        console.error('Admin reject user error:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'Failed to reject user'
         });
     }
 });

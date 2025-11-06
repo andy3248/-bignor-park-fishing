@@ -80,10 +80,10 @@ async function findUserByEmail(email) {
 async function createUser(userData) {
     const { email, passwordHash, firstName, lastName, phone, isAdmin } = userData;
     const result = await query(
-        `INSERT INTO users (email, password_hash, first_name, last_name, phone, is_admin)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, email, first_name, last_name, is_admin, created_at`,
-        [email.toLowerCase(), passwordHash, firstName, lastName, phone, isAdmin || false]
+        `INSERT INTO users (email, password_hash, first_name, last_name, phone, is_admin, approved)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, email, first_name, last_name, is_admin, approved, created_at`,
+        [email.toLowerCase(), passwordHash, firstName, lastName, phone, isAdmin || false, isAdmin ? true : false]
     );
     return result.rows[0];
 }
@@ -328,6 +328,31 @@ async function closePool() {
     console.log('🔌 Database connection pool closed');
 }
 
+/**
+ * Approve a user
+ */
+async function approveUser(userId) {
+    const result = await query(
+        `UPDATE users 
+         SET approved = TRUE, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1
+         RETURNING id, email, first_name, last_name, approved`,
+        [userId]
+    );
+    return result.rows[0];
+}
+
+/**
+ * Reject (delete) a user
+ */
+async function rejectUser(userId) {
+    const result = await query(
+        'DELETE FROM users WHERE id = $1 RETURNING id, email',
+        [userId]
+    );
+    return result.rows[0];
+}
+
 // Export all functions
 module.exports = {
     query,
@@ -356,6 +381,10 @@ module.exports = {
     getLakeBookingsForDate,
     expireOldBookings,
     getBookingStats,
+    
+    // User approval
+    approveUser,
+    rejectUser,
     
     // Utilities
     testConnection,

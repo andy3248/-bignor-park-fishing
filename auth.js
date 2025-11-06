@@ -202,15 +202,28 @@ if (signupForm) {
                 fishingCode
             });
             
-            // Store session
-            storeUserSession(response.user);
-            
-            showMessage('Account created successfully! Redirecting...', 'success');
-            
-            // Redirect to home page after 2 seconds
-            setTimeout(() => {
-                window.location.href = 'home.html';
-            }, 2000);
+            // Check if approval is required
+            if (response.requiresApproval) {
+                showMessage(response.message || 'Account created! Please wait for admin approval before logging in.', 'success');
+                
+                // Clear form
+                signupForm.reset();
+                
+                // Redirect to login page after 4 seconds
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 4000);
+            } else {
+                // Store session (for auto-approved users like admins)
+                storeUserSession(response.user);
+                
+                showMessage('Account created successfully! Redirecting...', 'success');
+                
+                // Redirect to home page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 2000);
+            }
             
         } catch (error) {
             console.error('Signup error:', error);

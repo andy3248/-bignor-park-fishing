@@ -87,7 +87,7 @@ router.post('/signup', async (req, res) => {
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
         
-        // Create user
+        // Create user (will be unapproved by default)
         const newUser = await db.createUser({
             email,
             passwordHash,
@@ -97,19 +97,16 @@ router.post('/signup', async (req, res) => {
             isAdmin: false
         });
         
-        // Generate token
-        const token = generateToken(newUser);
-        
-        // Return user data (without password hash)
+        // Return success message without token (user needs admin approval first)
         res.status(201).json({
-            message: 'Account created successfully',
-            token,
+            message: 'Account created successfully! Please wait for admin approval before logging in.',
+            requiresApproval: true,
             user: {
                 id: newUser.id,
                 email: newUser.email,
                 firstName: newUser.first_name,
                 lastName: newUser.last_name,
-                isAdmin: newUser.is_admin,
+                approved: newUser.approved,
                 createdAt: newUser.created_at
             }
         });
@@ -157,6 +154,14 @@ router.post('/login', async (req, res) => {
             return res.status(403).json({
                 error: 'Forbidden',
                 message: 'Your account has been deactivated. Please contact admin.'
+            });
+        }
+        
+        // Check if user is approved (admins are auto-approved)
+        if (!user.is_admin && !user.approved) {
+            return res.status(403).json({
+                error: 'Approval Pending',
+                message: 'Your account is pending admin approval. Please wait for approval before logging in.'
             });
         }
         
