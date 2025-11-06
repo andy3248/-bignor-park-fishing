@@ -11,15 +11,21 @@ function getUserInitials(fullName) {
 }
 
 // Render pending members as cards
-function renderPendingMembers() {
+async function renderPendingMembers() {
     const container = document.getElementById('pendingMembersContainer');
     const countBadge = document.getElementById('pendingCount');
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
     
-    const pendingUsers = users.filter(u => u.status === 'pending' && u.approved === false);
-    
-    // Update count badge
-    countBadge.textContent = pendingUsers.length;
+    try {
+        // Fetch users from API instead of localStorage
+        const response = await BignorAPI.admin.getAllUsers();
+        const users = response.users || [];
+        
+        // Note: API users don't have 'status' field, so we show all non-admin users
+        // In a real approval system, you'd add an 'approved' field to the database
+        const pendingUsers = users.filter(u => !u.isAdmin);
+        
+        // Update count badge
+        countBadge.textContent = pendingUsers.length;
     
     if (pendingUsers.length === 0) {
         container.innerHTML = `
@@ -54,13 +60,16 @@ function renderPendingMembers() {
             minute: '2-digit'
         });
         
-        const initials = getUserInitials(user.fullName);
+        // API returns firstName/lastName instead of fullName
+        const fullName = user.fullName || `${user.firstName} ${user.lastName}`;
+        const initials = getUserInitials(fullName);
         const phone = user.phone || 'Not provided';
         
         // Check for profile image
-        const hasProfileImage = user.profileImage && user.profileImage.trim() !== '';
+        const profileImage = user.profileImage || user.profilePictureUrl;
+        const hasProfileImage = profileImage && profileImage.trim() !== '';
         const avatarStyle = hasProfileImage 
-            ? `style="background-image: url(${user.profileImage}); background-size: cover; background-position: center;"` 
+            ? `style="background-image: url(${profileImage}); background-size: cover; background-position: center;"` 
             : '';
         const initialsDisplay = hasProfileImage ? 'style="display: none;"' : '';
         
@@ -71,7 +80,7 @@ function renderPendingMembers() {
                         <span ${initialsDisplay}>${initials}</span>
                     </div>
                     <div class="member-info">
-                        <h3 class="member-name">${user.fullName || 'Unknown'}</h3>
+                        <h3 class="member-name">${fullName}</h3>
                         <p class="member-email">${user.email}</p>
                     </div>
                 </div>
@@ -91,18 +100,21 @@ function renderPendingMembers() {
                     </div>
                 </div>
                 <div class="member-card-actions">
-                    <button class="btn-approve" onclick="approveMember('${user.id}')">
-                        Approve
-                    </button>
-                    <button class="btn-reject" onclick="rejectMember('${user.id}')">
-                        Reject
-                    </button>
+                    <p style="color: #48d1cc; font-weight: 600; margin: 0;">✅ Approved (Active)</p>
                 </div>
             </div>
         `;
     });
     
     container.innerHTML = cardsHTML;
+    } catch (error) {
+        console.error('Error loading members:', error);
+        container.innerHTML = `
+            <div class="no-members">
+                <p style="color: #dc3545;">Error loading members. Please refresh the page.</p>
+            </div>
+        `;
+    }
 }
 
 // Render approved members as cards
