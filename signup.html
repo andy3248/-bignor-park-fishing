@@ -102,6 +102,18 @@
                     </div>
                 </div>
                 
+                <div class="form-group">
+                    <label for="signupFishingCode">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
+                        </svg>
+                        Fishing Code
+                    </label>
+                    <input type="text" id="signupFishingCode" name="fishingCode" required placeholder="Enter your fishing code">
+                    <small class="hint">Contact the fishery for your fishing code</small>
+                </div>
+                
                 <div class="checkbox-group">
                     <label>
                         <input type="checkbox" id="terms" required>
@@ -118,6 +130,7 @@
         </div>
     </div>
     
+    <script src="api-client.js"></script>
     <script src="auth.js"></script>
 </body>
 </html> 

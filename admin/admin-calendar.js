@@ -16,6 +16,20 @@ function getInitials(name) {
     return name.substring(0, 2).toUpperCase();
 }
 
+// Format name as "FirstName S." (helper function)
+function formatNameWithInitial(name) {
+    if (!name) return 'Unknown';
+    if (name.includes('@')) return name.split('@')[0];
+    
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+        const firstName = parts[0];
+        const surnameInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+        return `${firstName} ${surnameInitial}.`;
+    }
+    return name;
+}
+
 // Initialize calendar
 function initializeCalendar() {
     console.log('=== INITIALIZING ADMIN CALENDAR ===');
@@ -109,42 +123,29 @@ function createDateCell(year, month, day, isOtherMonth) {
         const bookings = getBookingsForDate(dateStr);
         const counts = getBookingCountsForDate(dateStr);
         
-        console.log(`Date ${dateStr}: Found ${bookings.length} bookings`, bookings);
+        console.log(`Date ${dateStr}: B:${counts.mainLake} W:${counts.woodPool}`, bookings);
         
         if (bookings.length > 0) {
-            const bookingsContainer = document.createElement('div');
-            bookingsContainer.className = 'date-bookings-list';
+            const badgesContainer = document.createElement('div');
+            badgesContainer.className = 'date-count-badges';
             
-            // Show first 3 bookings
-            const displayBookings = bookings.slice(0, 3);
-            displayBookings.forEach(booking => {
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                const user = users.find(u => u.email === booking.userEmail);
-                const userName = user ? (user.fullName || user.email) : booking.userEmail;
-                const initials = getInitials(userName);
-                const lakeName = booking.lakeName || booking.lake || '';
-                const isMainLake = lakeName.includes('Main') || lakeName.includes('Bignor');
-                
-                console.log(`Creating booking item for ${userName}, lake: ${lakeName}, initials: ${initials}`);
-                
-                const bookingItem = document.createElement('div');
-                bookingItem.className = `date-booking-item ${isMainLake ? 'main-lake' : 'wood-pool'}`;
-                bookingItem.innerHTML = `
-                    <span class="booking-initials">${initials}</span>
-                    <span class="booking-name">${userName.split(' ')[0] || userName.substring(0, 8)}</span>
-                `;
-                bookingsContainer.appendChild(bookingItem);
-            });
-            
-            // Show count if more than 3
-            if (bookings.length > 3) {
-                const moreItem = document.createElement('div');
-                moreItem.className = 'date-booking-more';
-                moreItem.textContent = `+${bookings.length - 3} more`;
-                bookingsContainer.appendChild(moreItem);
+            // Show Bignor Main count badge
+            if (counts.mainLake > 0) {
+                const bignorBadge = document.createElement('div');
+                bignorBadge.className = 'lake-count-badge bignor-badge';
+                bignorBadge.textContent = `B: ${counts.mainLake}`;
+                badgesContainer.appendChild(bignorBadge);
             }
             
-            cell.appendChild(bookingsContainer);
+            // Show Wood Pool count badge
+            if (counts.woodPool > 0) {
+                const woodBadge = document.createElement('div');
+                woodBadge.className = 'lake-count-badge wood-badge';
+                woodBadge.textContent = `W: ${counts.woodPool}`;
+                badgesContainer.appendChild(woodBadge);
+            }
+            
+            cell.appendChild(badgesContainer);
             cell.classList.add('has-bookings');
         }
         
@@ -164,17 +165,29 @@ function getBookingCountsForDate(dateStr) {
     };
     
     try {
-        // Get all bookings from localStorage
+        // Get all bookings from both storage locations
         const allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
+        const bignorBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
         
-        allBookings.forEach(booking => {
-            if (booking.date === dateStr) {
-                const lakeName = booking.lakeName || booking.lake || '';
-                if (lakeName.includes('Main') || lakeName.includes('Bignor')) {
-                    counts.mainLake++;
-                } else if (lakeName.includes('Wood') || lakeName.includes('Pool')) {
-                    counts.woodPool++;
-                }
+        // Combine and deduplicate bookings
+        const allBookingsMap = new Map();
+        [...allBookings, ...bignorBookings].forEach(booking => {
+            if (booking.date === dateStr && booking.status !== 'cancelled') {
+                allBookingsMap.set(booking.id, booking);
+            }
+        });
+        
+        // Count bookings by lake
+        allBookingsMap.forEach(booking => {
+            const lakeName = booking.lakeName || booking.lake || '';
+            const lakeSlug = booking.lakeSlug || booking.lake || '';
+            
+            if (lakeName.includes('Main') || lakeName.includes('Bignor') || 
+                lakeSlug === 'bignor-main' || lakeSlug === 'bignor') {
+                counts.mainLake++;
+            } else if (lakeName.includes('Wood') || lakeName.includes('Pool') || 
+                       lakeSlug === 'wood-pool' || lakeSlug === 'wood') {
+                counts.woodPool++;
             }
         });
         
@@ -188,13 +201,22 @@ function getBookingCountsForDate(dateStr) {
 // Get all bookings for a specific date
 function getBookingsForDate(dateStr) {
     try {
+        // Get all bookings from both storage locations
         const allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        console.log('All bookings in system:', allBookings);
+        const bignorBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
+        
+        console.log('All bookings in system:', allBookings.length + bignorBookings.length);
         console.log('Filtering for date:', dateStr);
-        const filtered = allBookings.filter(booking => {
-            console.log(`Comparing booking.date "${booking.date}" with "${dateStr}"`);
-            return booking.date === dateStr;
+        
+        // Combine and deduplicate bookings using Map
+        const allBookingsMap = new Map();
+        [...allBookings, ...bignorBookings].forEach(booking => {
+            if (booking.date === dateStr && booking.status !== 'cancelled') {
+                allBookingsMap.set(booking.id, booking);
+            }
         });
+        
+        const filtered = Array.from(allBookingsMap.values());
         console.log('Filtered bookings:', filtered);
         return filtered;
     } catch (error) {
@@ -231,53 +253,72 @@ function openDateModal(dateStr) {
         container.innerHTML = bookings.map(booking => createBookingCard(booking)).join('');
     }
     
-    // Load maintenance reports for this date
-    const maintenanceReports = getMaintenanceForDate(dateStr);
-    const maintenanceContainer = document.getElementById('modalMaintenanceContainer');
-    
-    if (maintenanceReports.length > 0) {
-        maintenanceContainer.innerHTML = maintenanceReports.map(report => createMaintenanceCardInModal(report)).join('');
-    } else {
-        maintenanceContainer.innerHTML = '<p class="no-maintenance">No maintenance reports for this date.</p>';
-    }
-    
     document.getElementById('dateBookingsModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
-// Create booking card HTML
+// Create booking card HTML - Admin-focused simplified design
 function createBookingCard(booking) {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email === booking.userEmail);
+    const user = users.find(u => u.email === booking.userEmail || u.email === booking.userId);
     
-    const userName = user ? (user.fullName || user.email) : booking.userEmail;
-    const userEmail = booking.userEmail;
-    const initials = getInitials(userName);
+    const fullName = user ? (user.fullName || user.email) : (booking.userName || booking.userEmail || booking.userId || 'Unknown');
+    const userEmail = booking.userEmail || booking.userId;
+    const displayName = formatNameWithInitial(fullName);
+    const initials = getInitials(fullName);
     
     const lakeName = booking.lakeName || booking.lake || 'Unknown Lake';
-    const lakeClass = lakeName.includes('Main') ? 'main-lake' : 'wood-pool';
+    const lakeClass = lakeName.includes('Main') || lakeName.includes('Bignor') ? 'bignor-badge' : 'wood-badge';
     
     const startTime = booking.startUtc ? new Date(booking.startUtc).toLocaleTimeString('en-GB', {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'UTC'
-    }) : '00:00';
+    }) : '12:00';
+    
+    const bookingId = booking.id.substring(0, 8);
     
     return `
-        <div class="booking-detail-card">
-            <div class="booking-user-info">
-                <div class="user-avatar">${initials}</div>
-                <div class="user-details">
-                    <strong>${userName}</strong>
-                    <span>${userEmail}</span>
+        <div class="admin-booking-card">
+            <div class="admin-booking-header">
+                <div class="admin-user-avatar">${initials}</div>
+                <div class="admin-user-info">
+                    <div class="admin-user-name">${displayName}</div>
+                    <div class="admin-user-email">${userEmail}</div>
                 </div>
+                <span class="admin-lake-badge ${lakeClass}">${lakeName}</span>
             </div>
-            <div class="booking-lake-info">
-                <span class="lake-badge-modal ${lakeClass}">${lakeName}</span>
-                <span class="time-info">${startTime} UTC - 24hrs</span>
+            
+            <div class="admin-booking-details">
+                <div class="admin-detail-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span><strong>Time:</strong> ${startTime} UTC - 24 hours</span>
+                </div>
+                <div class="admin-detail-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span><strong>Booking ID:</strong> ${bookingId}</span>
+                </div>
+                ${booking.notes ? `
+                <div class="admin-detail-row notes-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span><strong>Maintenance Reports:</strong> ${booking.notes}</span>
+                </div>
+                ` : ''}
             </div>
-            ${booking.notes ? `<div class="booking-notes-display"><strong>Notes:</strong> ${booking.notes}</div>` : ''}
-            <button class="cancel-booking-btn" onclick="cancelUserBooking('${booking.id}', '${userEmail}')">
+            
+            <button class="admin-cancel-btn" onclick="cancelUserBooking('${booking.id}', '${userEmail}')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="15" y1="9" x2="9" y2="15"></line>
@@ -289,19 +330,34 @@ function createBookingCard(booking) {
     `;
 }
 
-// Cancel user booking
+// Cancel user booking - Properly lifts booking restriction
 function cancelUserBooking(bookingId, userEmail) {
-    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to cancel this booking?\n\nThis will lift the booking restriction and allow the user to book immediately for this date/lake combination.')) {
         return;
     }
     
     try {
-        // Remove from allBookings
+        console.log(`[Admin] Cancelling booking ${bookingId} for user ${userEmail}`);
+        
+        // 1. Update allBookings - mark as cancelled (don't delete, for records)
         let allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        allBookings = allBookings.filter(b => b.id !== bookingId);
+        const allBooking = allBookings.find(b => b.id === bookingId);
+        if (allBooking) {
+            allBooking.status = 'cancelled';
+            console.log(`[Admin] Marked booking as cancelled in allBookings`);
+        }
         localStorage.setItem('allBookings', JSON.stringify(allBookings));
         
-        // Remove from user's active booking if it matches
+        // 2. Update bignor_park_bookings - mark as cancelled (don't delete, for records)
+        let bignorBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
+        const bignorBooking = bignorBookings.find(b => b.id === bookingId);
+        if (bignorBooking) {
+            bignorBooking.status = 'cancelled';
+            console.log(`[Admin] Marked booking as cancelled in bignor_park_bookings`);
+        }
+        localStorage.setItem('bignor_park_bookings', JSON.stringify(bignorBookings));
+        
+        // 3. Remove from user's active booking if it matches
         const activeBookingKey = `activeBooking_${userEmail}`;
         const activeBooking = localStorage.getItem(activeBookingKey);
         if (activeBooking) {
@@ -309,14 +365,33 @@ function cancelUserBooking(bookingId, userEmail) {
                 const parsed = JSON.parse(activeBooking);
                 if (parsed.id === bookingId) {
                     localStorage.removeItem(activeBookingKey);
+                    console.log(`[Admin] Removed from user's active booking`);
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error('[Admin] Error parsing active booking:', e);
+            }
         }
         
-        // Clear ActiveBookingSystem if it exists
+        // 4. Clear ActiveBookingSystem if it exists
         if (window.ActiveBookingSystem && window.ActiveBookingSystem.clearBooking) {
             window.ActiveBookingSystem.clearBooking(userEmail);
+            console.log(`[Admin] Cleared from ActiveBookingSystem`);
         }
+        
+        // 5. Clear from bookings storage (legacy)
+        try {
+            let bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            const legacyBooking = bookings.find(b => b.id === bookingId);
+            if (legacyBooking) {
+                legacyBooking.status = 'cancelled';
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                console.log(`[Admin] Marked booking as cancelled in legacy bookings`);
+            }
+        } catch (e) {
+            console.error('[Admin] Error updating legacy bookings:', e);
+        }
+        
+        console.log(`[Admin] ✅ Booking cancelled successfully. User can now rebook.`);
         
         // Refresh calendar
         renderCalendar(currentYear, currentMonth);
@@ -326,11 +401,11 @@ function cancelUserBooking(bookingId, userEmail) {
             openDateModal(selectedDate);
         }
         
-        alert('Booking cancelled successfully!');
+        alert('✅ Booking cancelled successfully!\n\nThe user can now make a new booking for this date/lake combination.');
         
     } catch (error) {
-        console.error('Error cancelling booking:', error);
-        alert('Error cancelling booking. Please try again.');
+        console.error('[Admin] Error cancelling booking:', error);
+        alert('❌ Error cancelling booking. Please try again.');
     }
 }
 
@@ -359,41 +434,6 @@ function nextMonth() {
         currentYear++;
     }
     renderCalendar(currentYear, currentMonth);
-}
-
-// Get maintenance reports for a specific date
-function getMaintenanceForDate(dateStr) {
-    try {
-        const allReports = JSON.parse(localStorage.getItem('maintenanceReports') || '[]');
-        return allReports.filter(report => report.date === dateStr);
-    } catch (error) {
-        console.error('Error getting maintenance reports:', error);
-        return [];
-    }
-}
-
-// Create maintenance card HTML for modal
-function createMaintenanceCardInModal(report) {
-    const date = new Date(report.date);
-    const formattedDate = date.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
-    
-    const statusClass = report.status || 'completed';
-    const statusText = statusClass.charAt(0).toUpperCase() + statusClass.slice(1).replace('-', ' ');
-    
-    return `
-        <div class="maintenance-card-modal ${statusClass}">
-            <div class="maintenance-modal-header">
-                <div class="maintenance-modal-date">${formattedDate}</div>
-                <div class="maintenance-modal-status ${statusClass}">${statusText}</div>
-            </div>
-            <h4 class="maintenance-modal-title">${report.lake} - ${report.title}</h4>
-            <p class="maintenance-modal-description">${report.description}</p>
-        </div>
-    `;
 }
 
 // Close modal when clicking outside

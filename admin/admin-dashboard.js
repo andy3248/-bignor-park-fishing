@@ -512,8 +512,77 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// ============================================
+// BACKUP EXPORT FUNCTION
+// ============================================
+
+function exportBackup() {
+    try {
+        // Collect all data from localStorage
+        const backupData = {
+            exportDate: new Date().toISOString(),
+            exportedBy: getCurrentAdmin()?.fullName || 'Admin',
+            version: '1.0',
+            data: {
+                users: JSON.parse(localStorage.getItem('users') || '[]'),
+                bookings: JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]'),
+                allBookings: JSON.parse(localStorage.getItem('allBookings') || '[]'),
+                adminLoginLogs: JSON.parse(localStorage.getItem('adminLoginLogs') || '[]'),
+                memberLoginLogs: JSON.parse(localStorage.getItem('memberLoginLogs') || '[]'),
+                // Include any active bookings
+                activeBookings: {}
+            }
+        };
+        
+        // Collect all activeBooking_ keys
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('activeBooking_')) {
+                backupData.data.activeBookings[key] = JSON.parse(localStorage.getItem(key) || 'null');
+            }
+        }
+        
+        // Create JSON string
+        const jsonString = JSON.stringify(backupData, null, 2);
+        
+        // Create blob and download
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+        a.download = `bignor-park-backup-${timestamp}.json`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Show success message
+        alert(`✅ Backup exported successfully!\n\nFilename: bignor-park-backup-${timestamp}.json\n\nThis file contains:\n• ${backupData.data.users.length} users\n• ${backupData.data.bookings.length} bookings\n• Login logs\n• Active booking data\n\n⚠️ Store this backup file securely!`);
+        
+        // Log the export
+        const logs = JSON.parse(localStorage.getItem('adminLoginLogs') || '[]');
+        logs.unshift({
+            timestamp: new Date().toISOString(),
+            admin: getCurrentAdmin()?.fullName || 'Admin',
+            action: 'Backup Export',
+            success: true,
+            message: `Exported ${backupData.data.users.length} users and ${backupData.data.bookings.length} bookings`
+        });
+        localStorage.setItem('adminLoginLogs', JSON.stringify(logs.slice(0, 100))); // Keep last 100 logs
+        
+    } catch (error) {
+        console.error('[Admin] Error exporting backup:', error);
+        alert('❌ Error exporting backup. Please try again.');
+    }
+}
+
 // Expose functions to window
 window.openCreateBookingModal = openCreateBookingModal;
 window.closeCreateBookingModal = closeCreateBookingModal;
 window.adminCreateBooking = adminCreateBooking;
 window.adminCancelBooking = adminCancelBooking;
+window.exportBackup = exportBackup;

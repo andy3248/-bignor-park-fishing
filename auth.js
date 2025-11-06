@@ -1,3 +1,9 @@
+/**
+ * Authentication Module - API-based
+ * Handles login, signup, and authentication using the backend API
+ * Requires: api-client.js to be loaded first
+ */
+
 // Password toggle functionality
 function togglePassword(inputId) {
     const passwordInput = document.getElementById(inputId);
@@ -18,68 +24,76 @@ function togglePassword(inputId) {
     }
 }
 
-
-
-// Initialize local storage for users if not exists
-function initStorage() {
-    if (!localStorage.getItem('users')) {
-        localStorage.setItem('users', JSON.stringify([]));
+// Check if user is authenticated
+async function checkAuth() {
+    const token = BignorAPI.getToken();
+    if (!token) {
+        return null;
+    }
+    
+    try {
+        const response = await BignorAPI.auth.getCurrentUser();
+        return response.user;
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        BignorAPI.removeToken();
+        return null;
     }
 }
 
-// Login form handler
+// Store user session info (for backward compatibility with existing pages)
+function storeUserSession(user) {
+    const session = {
+        email: user.email,
+        fullName: `${user.firstName} ${user.lastName}`,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        profilePictureUrl: user.profilePictureUrl,
+        role: user.isAdmin ? 'admin' : 'member',
+        isAdmin: user.isAdmin,
+        loginTime: new Date().toISOString()
+    };
+    
+    localStorage.setItem('currentUser', JSON.stringify(session));
+    
+    if (user.isAdmin) {
+        localStorage.setItem('adminSession', JSON.stringify(session));
+    }
+}
+
+// Login form handler - API-based
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
-        const fishingCode = document.getElementById('fishingCode').value;
+        const fishingCode = document.getElementById('fishingCode').value.trim();
         
-        // Check if this is an admin login attempt (no fishing code or empty)
-        if (!fishingCode || fishingCode.trim() === '') {
-            // Try admin login
-            const adminAccounts = [
-                {
-                    email: 'admin@bignorpark.com',
-                    password: 'admin123',
-                    fullName: 'Admin User',
-                    role: 'admin'
-                },
-                {
-                    email: 'michael@bignorpark.com',
-                    password: 'michael123',
-                    fullName: 'Michael Boyle',
-                    role: 'admin'
-                },
-                {
-                    email: 'ross-regencycarpets@hotmail.com',
-                    password: 'Bignor4877',
-                    fullName: 'Ross',
-                    role: 'admin'
-                }
-            ];
+        // Disable form during submission
+        const submitButton = loginForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Logging in...';
+        
+        try {
+            let response;
             
-            const admin = adminAccounts.find(acc =>
-                acc.email.toLowerCase() === email.toLowerCase() &&
-                acc.password === password
-            );
-            
-            if (admin) {
-                // Store admin session
-                const adminSession = {
-                    email: admin.email,
-                    fullName: admin.fullName,
-                    role: admin.role,
-                    loginTime: new Date().toISOString()
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(adminSession));
-                localStorage.setItem('adminSession', JSON.stringify(adminSession));
+            // Check if this is an admin login attempt (no fishing code or empty)
+            if (!fishingCode || fishingCode === '') {
+                // Try admin login
+                response = await BignorAPI.auth.adminLogin({
+                    email,
+                    password
+                });
                 
                 // Log the login activity
-                logUserLoginActivity(admin.email, admin.fullName, 'admin', true);
+                logUserLoginActivity(email, response.user.firstName + ' ' + response.user.lastName, 'admin', true);
+                
+                // Store session
+                storeUserSession(response.user);
                 
                 showMessage('Admin login successful! Redirecting...', 'success');
                 
@@ -87,61 +101,63 @@ if (loginForm) {
                 setTimeout(() => {
                     window.location.href = 'admin/dashboard.html';
                 }, 1500);
-                return;
+                
+            } else {
+                // Member login with fishing code
+                response = await BignorAPI.auth.login({
+                    email,
+                    password,
+                    fishingCode
+                });
+                
+                // Log the login activity
+                logUserLoginActivity(email, response.user.firstName + ' ' + response.user.lastName, 'member', true);
+                
+                // Store session
+                storeUserSession(response.user);
+                
+                showMessage('Login successful! Redirecting...', 'success');
+                
+                // Redirect to home page
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1500);
             }
             
-            // If not admin, show error
-            logUserLoginActivity(email, 'Unknown', 'admin', false);
-            showMessage('Invalid credentials. Members must enter fishing code.', 'error');
-            return;
-        }
-        
-        // Verify fishing code for member login
-        if (fishingCode !== '1187') {
-            showMessage('Invalid fishing code. Access denied.', 'error');
-            return;
-        }
-        
-        // Get users from storage
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        
-        // Find user
-        const user = users.find(u => u.email === email && u.password === password);
-        
-        if (user) {
-            // Clear any temporary user data
-            localStorage.removeItem('tempUserData');
+        } catch (error) {
+            console.error('Login error:', error);
             
-            // Store current user
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            
-            // Log the login activity
-            logUserLoginActivity(user.email, user.fullName, 'member', true);
-            
-            showMessage('Login successful! Redirecting...', 'success');
-            
-            // Redirect to home page after 1.5 seconds
-            setTimeout(() => {
-                window.location.href = 'home.html';
-            }, 1500);
-        } else {
             // Log failed login attempt
-            logUserLoginActivity(email, 'Unknown', 'member', false);
-            showMessage('Invalid email or password.', 'error');
+            logUserLoginActivity(email, 'Unknown', fishingCode ? 'member' : 'admin', false);
+            
+            // Show error message
+            let errorMessage = 'Login failed. Please try again.';
+            if (error.data && error.data.message) {
+                errorMessage = error.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+            
+            // Re-enable form
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
         }
     });
 }
 
-// Signup form handler
+// Signup form handler - API-based
 const signupForm = document.getElementById('signupForm');
 if (signupForm) {
-    signupForm.addEventListener('submit', function(e) {
+    signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const fullName = document.getElementById('fullName').value;
-        const email = document.getElementById('signupEmail').value;
-        const phone = document.getElementById('phone').value;
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const phone = document.getElementById('phone').value.trim();
         const password = document.getElementById('signupPassword').value;
+        const fishingCode = document.getElementById('signupFishingCode')?.value.trim() || '';
         const terms = document.getElementById('terms').checked;
         
         // Validate terms acceptance
@@ -150,41 +166,69 @@ if (signupForm) {
             return;
         }
         
+        // Enhanced password validation function
+        function validatePasswordStrength(password) {
+            if (password.length < 6) {
+                return { valid: false, message: 'Password must be at least 6 characters long!' };
+            }
+            return { valid: true };
+        }
+        
         // Validate password strength
-        if (password.length < 6) {
-            showMessage('Password must be at least 6 characters long!', 'error');
+        const passwordCheck = validatePasswordStrength(password);
+        if (!passwordCheck.valid) {
+            showMessage(passwordCheck.message, 'error');
             return;
         }
         
-        // Get existing users
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        // Split full name into first and last name
+        const nameParts = fullName.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ') || nameParts[0];
         
-        // Check if email already exists
-        if (users.find(u => u.email === email)) {
-            showMessage('Email already registered!', 'error');
-            return;
+        // Disable form during submission
+        const submitButton = signupForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Creating account...';
+        
+        try {
+            const response = await BignorAPI.auth.signup({
+                email,
+                password,
+                firstName,
+                lastName,
+                phone: phone || null,
+                fishingCode
+            });
+            
+            // Store session
+            storeUserSession(response.user);
+            
+            showMessage('Account created successfully! Redirecting...', 'success');
+            
+            // Redirect to home page after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'home.html';
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Signup error:', error);
+            
+            // Show error message
+            let errorMessage = 'Signup failed. Please try again.';
+            if (error.data && error.data.message) {
+                errorMessage = error.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+            
+            // Re-enable form
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
         }
-        
-        // Create user object
-        const newUser = {
-            id: Date.now().toString(),
-            fullName,
-            email,
-            phone: phone || 'Not provided',
-            password,
-            createdAt: new Date().toISOString()
-        };
-        
-        // Save user
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-        
-        showMessage('Account created successfully! Redirecting to login...', 'success');
-        
-        // Redirect to login after 2 seconds
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
     });
 }
 
@@ -274,12 +318,20 @@ function logUserLoginActivity(email, fullName, userType, success) {
     }
 }
 
-// Initialize storage on load
-initStorage();
-
 // Clear any existing user session when landing on login page
 // This ensures clean state for new login
 if (window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/')) {
+    BignorAPI.removeToken();
     localStorage.removeItem('currentUser');
-    localStorage.removeItem('tempUserData'); // Clear temporary user data too
-} 
+    localStorage.removeItem('adminSession');
+    localStorage.removeItem('tempUserData');
+}
+
+// Export functions for use in other scripts
+window.BignorAuth = {
+    checkAuth,
+    storeUserSession,
+    togglePassword,
+    showMessage,
+    logUserLoginActivity
+}; 

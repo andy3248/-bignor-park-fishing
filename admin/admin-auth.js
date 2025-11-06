@@ -98,7 +98,7 @@ function isAdmin() {
 function requireAdmin() {
     if (!isAdmin()) {
         alert('Access denied. Admin privileges required.');
-        window.location.href = 'login.html';
+        window.location.href = '../index.html';
         return false;
     }
     return true;
@@ -108,7 +108,7 @@ function requireAdmin() {
 function logoutAdmin() {
     localStorage.removeItem('adminSession');
     localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    window.location.href = '../index.html';
 }
 
 // Get current admin

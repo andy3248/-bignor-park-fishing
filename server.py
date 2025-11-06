@@ -16,10 +16,16 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     
     def guess_type(self, path):
         # Override to ensure .js files are served as JavaScript modules
-        mimetype, encoding = super().guess_type(path)
+        result = super().guess_type(path)
+        # Handle both Python 3.12 and 3.13+ return formats
+        if isinstance(result, tuple) and len(result) >= 2:
+            mimetype, encoding = result[0], result[1]
+        else:
+            mimetype, encoding = result, None
+        
         if path.endswith('.js'):
-            return ('application/javascript', encoding)
-        return (mimetype, encoding)
+            return 'application/javascript'
+        return mimetype
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 

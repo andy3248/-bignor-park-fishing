@@ -26,7 +26,7 @@ function showAdminLinkIfAdmin() {
         if (!document.getElementById('adminNavLink')) {
             const adminLink = document.createElement('a');
             adminLink.id = 'adminNavLink';
-            adminLink.href = 'admin/login.html';
+            adminLink.href = 'admin/dashboard.html';
             adminLink.textContent = 'Admin';
             adminLink.style.color = '#2c3e50';
             adminLink.style.fontWeight = '600';

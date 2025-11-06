@@ -3,7 +3,7 @@
 // Check admin authentication
 if (!isAdmin()) {
     alert('Access denied. Admin privileges required.');
-    window.location.href = 'login.html';
+    window.location.href = '../index.html';
 }
 
 // Load admin name
@@ -196,6 +196,7 @@ function escapeHtml(str) {
 }
 
 console.log('[AdminLogs] Login logs module loaded');
+
 
 
 

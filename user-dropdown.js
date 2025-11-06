@@ -157,6 +157,11 @@
             if (dropdownUserName) dropdownUserName.textContent = fullName;
             if (dropdownUserEmail) dropdownUserEmail.textContent = currentUser.email;
             
+            // Load and apply profile image if it exists
+            if (currentUser.profileImage) {
+                applyProfileImage(currentUser.profileImage);
+            }
+            
             console.log('[UserDropdown] User info loaded:', fullName);
             
         } catch (error) {
@@ -181,6 +186,49 @@
         
         // Single name - use first two letters
         return name.substring(0, 2).toUpperCase();
+    }
+    
+    // Apply profile image to all avatar elements
+    function applyProfileImage(imageData) {
+        if (!imageData) return;
+        
+        // Update header avatar
+        const userAvatar = document.getElementById('userAvatar');
+        if (userAvatar) {
+            userAvatar.style.backgroundImage = `url(${imageData})`;
+            userAvatar.style.backgroundSize = 'cover';
+            userAvatar.style.backgroundPosition = 'center';
+            const initialsSpan = userAvatar.querySelector('span');
+            if (initialsSpan) {
+                initialsSpan.style.display = 'none';
+            }
+        }
+        
+        // Update dropdown avatar
+        const dropdownAvatar = document.getElementById('dropdownAvatar');
+        if (dropdownAvatar) {
+            dropdownAvatar.style.backgroundImage = `url(${imageData})`;
+            dropdownAvatar.style.backgroundSize = 'cover';
+            dropdownAvatar.style.backgroundPosition = 'center';
+            const dropdownInitialsSpan = dropdownAvatar.querySelector('span');
+            if (dropdownInitialsSpan) {
+                dropdownInitialsSpan.style.display = 'none';
+            }
+        }
+        
+        // Update profile page avatar (large avatar on profile.html)
+        const profileAvatar = document.getElementById('profileAvatar');
+        if (profileAvatar) {
+            profileAvatar.style.backgroundImage = `url(${imageData})`;
+            profileAvatar.style.backgroundSize = 'cover';
+            profileAvatar.style.backgroundPosition = 'center';
+            const profileInitialsSpan = profileAvatar.querySelector('span');
+            if (profileInitialsSpan) {
+                profileInitialsSpan.style.display = 'none';
+            }
+        }
+        
+        console.log('[UserDropdown] Profile image applied to all avatars');
     }
     
     // Update booking status in dropdown

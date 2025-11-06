@@ -341,13 +341,22 @@
                     <span id="profileInitials">M</span>
                 </div>
                 <br>
-                <button class="change-avatar-btn" onclick="openChangeImageModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 5px;">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                        <circle cx="12" cy="13" r="4"></circle>
-                    </svg>
-                    Change Profile Image
-                </button>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button class="change-avatar-btn" onclick="openChangeImageModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 5px;">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        Change Profile Image
+                    </button>
+                    <button class="change-avatar-btn" id="removeImageBtn" onclick="removeProfileImage()" style="border-color: #e74c3c; color: #e74c3c; display: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 5px;">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Remove Image
+                    </button>
+                </div>
             </div>
 
             <form id="profileForm" onsubmit="saveProfile(event)">
@@ -361,27 +370,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" id="username">
-                            <small>Optional display name</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" required>
-                            <span class="error-message" id="emailError">Please enter a valid email</span>
-                        </div>
-
-                        <div class="form-group">
                             <label for="phone">Phone Number</label>
                             <input type="tel" id="phone">
                             <small>Optional contact number</small>
-                        </div>
-
-                        <div class="form-group form-group-full">
-                            <label for="bio">About Me</label>
-                            <textarea id="bio" placeholder="Tell us a bit about yourself and your fishing experience..."></textarea>
-                            <small>Share your fishing interests, experience level, or favorite catches</small>
                         </div>
                     </div>
                 </div>
@@ -427,14 +418,19 @@
 
                 // Populate form fields
                 document.getElementById('fullName').value = currentUser.fullName || '';
-                document.getElementById('username').value = currentUser.username || '';
-                document.getElementById('email').value = currentUser.email || '';
                 document.getElementById('phone').value = currentUser.phone || '';
-                document.getElementById('bio').value = currentUser.bio || '';
 
                 // Update avatar
                 const initials = getInitials(currentUser.fullName || currentUser.email);
                 document.getElementById('profileInitials').textContent = initials;
+                
+                // Show/hide remove image button
+                const removeBtn = document.getElementById('removeImageBtn');
+                if (currentUser.profileImage) {
+                    removeBtn.style.display = 'inline-block';
+                } else {
+                    removeBtn.style.display = 'none';
+                }
 
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -446,19 +442,11 @@
             event.preventDefault();
 
             const fullName = document.getElementById('fullName').value.trim();
-            const username = document.getElementById('username').value.trim();
-            const email = document.getElementById('email').value.trim();
             const phone = document.getElementById('phone').value.trim();
-            const bio = document.getElementById('bio').value.trim();
 
             // Validation
             if (!fullName) {
                 showError('fullNameError');
-                return;
-            }
-
-            if (!email || !isValidEmail(email)) {
-                showError('emailError');
                 return;
             }
 
@@ -467,12 +455,12 @@
                 let currentUserData = localStorage.getItem('currentUser') || localStorage.getItem('tempUserData');
                 let currentUser = JSON.parse(currentUserData);
 
+                // Store original email (can't be changed)
+                const originalEmail = currentUser.email;
+
                 // Update user object
                 currentUser.fullName = fullName;
-                currentUser.username = username;
-                currentUser.email = email;
                 currentUser.phone = phone;
-                currentUser.bio = bio;
 
                 // Save to localStorage
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -525,6 +513,78 @@
                 return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
             }
             return name.substring(0, 2).toUpperCase();
+        }
+
+        // Remove profile image
+        function removeProfileImage() {
+            if (!confirm('Are you sure you want to remove your profile picture?\n\nYour initials will be displayed instead.')) {
+                return;
+            }
+            
+            try {
+                // Get current user
+                let currentUserData = localStorage.getItem('currentUser') || localStorage.getItem('tempUserData');
+                let currentUser = JSON.parse(currentUserData);
+                
+                // Remove profile image
+                delete currentUser.profileImage;
+                
+                // Save to localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update in users array
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const userIndex = users.findIndex(u => u.email === currentUser.email);
+                if (userIndex !== -1) {
+                    delete users[userIndex].profileImage;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                
+                // Reset avatar to show initials
+                const profileAvatar = document.getElementById('profileAvatar');
+                if (profileAvatar) {
+                    profileAvatar.style.backgroundImage = '';
+                    const initialsSpan = profileAvatar.querySelector('span');
+                    if (initialsSpan) {
+                        initialsSpan.style.display = 'block';
+                    }
+                }
+                
+                // Update header avatars if they exist
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.style.backgroundImage = '';
+                    const headerSpan = userAvatar.querySelector('span');
+                    if (headerSpan) {
+                        headerSpan.style.display = 'block';
+                    }
+                }
+                
+                const dropdownAvatar = document.getElementById('dropdownAvatar');
+                if (dropdownAvatar) {
+                    dropdownAvatar.style.backgroundImage = '';
+                    const dropdownSpan = dropdownAvatar.querySelector('span');
+                    if (dropdownSpan) {
+                        dropdownSpan.style.display = 'block';
+                    }
+                }
+                
+                // Hide remove button
+                document.getElementById('removeImageBtn').style.display = 'none';
+                
+                alert('Profile picture removed successfully!');
+                
+            } catch (error) {
+                console.error('Error removing profile image:', error);
+                alert('Error removing profile picture. Please try again.');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('tempUserData');
+            window.location.href = 'index.html';
         }
 
         // Load profile on page load
