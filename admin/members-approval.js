@@ -250,8 +250,12 @@ async function approveMember(userId) {
             return;
         }
         
-        // Call API to approve user
-        const approveResponse = await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/approve`, {
+        // Call API to approve user using the correct baseURL (already includes /api)
+        const apiBaseUrl = BignorAPI.baseURL || (window.location.hostname.includes('onrender.com') 
+            ? 'https://bignor-park-fishing.onrender.com/api' 
+            : 'http://localhost:3000/api');
+        
+        const approveResponse = await fetch(`${apiBaseUrl}/admin/users/${userId}/approve`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${BignorAPI.getToken()}`,
@@ -293,8 +297,12 @@ async function rejectMember(userId) {
             return;
         }
         
-        // Call API to reject (delete) user
-        const rejectResponse = await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/reject`, {
+        // Call API to reject (delete) user using the correct baseURL (already includes /api)
+        const apiBaseUrl = BignorAPI.baseURL || (window.location.hostname.includes('onrender.com') 
+            ? 'https://bignor-park-fishing.onrender.com/api' 
+            : 'http://localhost:3000/api');
+        
+        const rejectResponse = await fetch(`${apiBaseUrl}/admin/users/${userId}/reject`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${BignorAPI.getToken()}`,
