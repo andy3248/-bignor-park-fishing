@@ -3,10 +3,12 @@
  * Handles all communication with the backend API
  */
 
-// API Configuration
+// API Configuration - Automatically detects environment
 const API_CONFIG = {
-    // Change this to your actual API URL in production
-    baseURL: 'http://localhost:3000/api',
+    // Automatically uses production API if on Render, localhost otherwise
+    baseURL: window.location.hostname.includes('onrender.com') 
+        ? 'https://bignor-park-api.onrender.com/api'  // PRODUCTION: Update this after deploying backend
+        : 'http://localhost:3000/api',                // LOCAL DEVELOPMENT
     timeout: 10000
 };
 
