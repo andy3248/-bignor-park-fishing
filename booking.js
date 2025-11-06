@@ -170,42 +170,26 @@ function reloadBookings() {
     console.log('After reload - selectedDate:', selectedDate, 'selectedLake:', selectedLake);
 }
 
-// Storage key - must match bookingsContext.js
-const STORAGE_KEY = 'bignor_park_bookings';
-
-// Load bookings from localStorage
-function loadBookingsFromStorage() {
+// Load bookings from API
+async function loadBookingsFromStorage() {
     try {
-        // Try new storage key first
-        let storedBookings = localStorage.getItem(STORAGE_KEY);
-
-        // Fall back to old key for backwards compatibility
-        if (!storedBookings) {
-            storedBookings = localStorage.getItem('bookings');
-            // If found in old key, migrate to new key
-            if (storedBookings) {
-                localStorage.setItem(STORAGE_KEY, storedBookings);
-                localStorage.removeItem('bookings');
-                console.log('Migrated bookings from old storage key');
-            }
-        }
-
-        console.log('Stored bookings from localStorage:', storedBookings);
-        bookings = storedBookings ? JSON.parse(storedBookings) : [];
-        console.log('Loaded bookings array:', bookings);
+        console.log('Loading bookings from API...');
+        
+        // Get all active bookings from API
+        const response = await BignorAPI.bookings.getMyBookings(100);
+        bookings = response.bookings || [];
+        
+        console.log('Loaded bookings from API:', bookings);
     } catch (error) {
-        console.error('Error loading bookings:', error);
+        console.error('Error loading bookings from API:', error);
         bookings = [];
     }
 }
 
-// Save bookings to localStorage
+// Note: saveBookingsToStorage is deprecated - bookings are now saved via API calls
 function saveBookingsToStorage() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
-    } catch (error) {
-        console.error('Error saving bookings:', error);
-    }
+    // No-op: Bookings are now saved directly to database via API
+    console.log('saveBookingsToStorage called - bookings are now saved via API');
 }
 
 // Initialize calendar
@@ -616,41 +600,34 @@ function confirmBooking() {
         return;
     }
     
-    // Create new booking
-    const newBooking = {
-        id: Date.now().toString(),
-        userId: currentUser.email,
-        userName: currentUser.fullName,
-        lake: selectedLake,
-        lakeName: getLakeName(selectedLake),
-        date: dateString,
-        notes: notes,
-        status: 'upcoming',
-        createdAt: new Date().toISOString()
-    };
-    
-    console.log('Created new booking:', newBooking);
-    
+    // Create booking via API
     try {
-        // Add to bookings array
-        bookings.push(newBooking);
-        console.log('Added booking to array. Total bookings:', bookings.length);
+        console.log('Creating booking via API...');
         
-        // Save to localStorage
-        saveBookingsToStorage();
-        console.log('Saved bookings to localStorage');
+        // Call API to create booking
+        const response = await BignorAPI.bookings.createBooking({
+            lakeId: parseInt(selectedLake), // Convert to lake ID (1, 2, or 3)
+            lakeName: getLakeName(selectedLake),
+            bookingDate: dateString,
+            notes: notes || ''
+        });
+        
+        console.log('Booking created successfully:', response);
         
         // Set booking restriction AFTER successful booking
         setLastBookingTime();
         console.log('Set last booking time');
         
+        // Reload bookings from API to get updated list
+        await loadBookingsFromStorage();
+        
         // Update restrictions and active booking display
         checkBookingRestriction();
-        loadActiveBooking();
+        await loadActiveBooking();
         
         // Update lake availability display to reflect the new booking
         if (selectedDate) {
-            updateLakeAvailability(dateString);
+            await updateLakeAvailability(dateString);
         }
         
         // Reset form
@@ -661,7 +638,7 @@ function confirmBooking() {
         
     } catch (error) {
         console.error('Error confirming booking:', error);
-        alert('There was an error confirming your booking. Please try again.');
+        alert(error.message || 'There was an error confirming your booking. Please try again.');
     }
 }
 
@@ -808,10 +785,9 @@ function setLastBookingTime() {
 }
 
 // Load active booking for display
-function loadActiveBooking() {
+async function loadActiveBooking() {
     console.log('loadActiveBooking called');
     console.log('currentUser:', currentUser);
-    console.log('bookings array:', bookings);
     
     const activeBookingContent = document.getElementById('activeBookingContent');
     if (!activeBookingContent) {
@@ -833,10 +809,15 @@ function loadActiveBooking() {
         return;
     }
     
-    // Find the user's active booking
+    // Reload bookings from API to ensure we have latest data
+    await loadBookingsFromStorage();
+    console.log('bookings array:', bookings);
     
-    const userBookings = bookings.filter(booking => booking.userId === currentUser.email);
-    const activeBooking = userBookings.find(booking => booking.status === 'upcoming');
+    // Find the user's active booking (API returns bookings with user_id, not userId)
+    const userBookings = bookings.filter(booking => 
+        booking.userId === currentUser.email || booking.user_id === currentUser.id
+    );
+    const activeBooking = userBookings.find(booking => booking.status === 'active' || booking.status === 'upcoming');
     
     console.log('User bookings:', userBookings);
     console.log('Active booking:', activeBooking);
@@ -1069,11 +1050,11 @@ function switchToBookingTab() {
 }
 
 // Initialize booking system - called on page mount/login
-function initializeBookingSystem() {
+async function initializeBookingSystem() {
     console.log('Initializing booking system...');
     
-    // Load persisted bookings from storage
-    loadBookingsFromStorage();
+    // Load bookings from API
+    await loadBookingsFromStorage();
     
     // Set selectedDate to today if not already chosen
     if (!selectedDate) {
@@ -1090,8 +1071,7 @@ function initializeBookingSystem() {
     const activeBookings = activeBookingsForDate(selectedDate);
     console.log(`Active bookings for ${formatDate(selectedDate)}:`, activeBookings);
     
-    // Clear expired bookings
-    clearExpiredBookings();
+    // Note: clearExpiredBookings is handled by the backend automatically
 }
 
 // Get active bookings for a specific date
