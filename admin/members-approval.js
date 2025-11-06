@@ -327,61 +327,50 @@ async function rejectMember(userId) {
 }
 
 // Remove approved member
-function removeMember(userId) {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-        alert('User not found.');
-        return;
-    }
-    
-    const user = users[userIndex];
-    
-    if (!confirm(`WARNING: Remove ${user.fullName}?\n\nEmail: ${user.email}\n\nThis will:\n- DELETE their account permanently\n- Cancel all their bookings\n- Prevent them from logging in\n\nThey will need to sign up again if they wish to rejoin.`)) {
-        return;
-    }
-    
-    // Remove all bookings for this user
+async function removeMember(userId) {
     try {
-        // Remove from bignor_park_bookings
-        const bookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
-        const updatedBookings = bookings.filter(b => b.userId !== user.email);
-        localStorage.setItem('bignor_park_bookings', JSON.stringify(updatedBookings));
+        // Get users to show name in confirmation
+        const response = await BignorAPI.admin.getAllUsers();
+        const user = response.users.find(u => u.id === userId);
         
-        // Remove from allBookings
-        const allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        const updatedAllBookings = allBookings.filter(b => b.userId !== user.email);
-        localStorage.setItem('allBookings', JSON.stringify(updatedAllBookings));
+        if (!user) {
+            alert('User not found.');
+            return;
+        }
         
-        // Remove active booking
-        localStorage.removeItem(`activeBooking_${user.email}`);
+        const fullName = user.fullName || `${user.firstName} ${user.lastName}`;
         
-        console.log(`[Admin] Removed ${updatedBookings.length - bookings.length} bookings for ${user.email}`);
+        if (!confirm(`WARNING: Remove ${fullName}?\n\nEmail: ${user.email}\n\nThis will:\n- DELETE their account permanently\n- Cancel all their bookings\n- Prevent them from logging in\n\nThey will need to sign up again if they wish to rejoin.`)) {
+            return;
+        }
+        
+        // Call API to delete user using the correct baseURL (already includes /api)
+        const apiBaseUrl = BignorAPI.baseURL || (window.location.hostname.includes('onrender.com') 
+            ? 'https://bignor-park-fishing.onrender.com/api' 
+            : 'http://localhost:3000/api');
+        
+        const deleteResponse = await fetch(`${apiBaseUrl}/admin/users/${userId}/reject`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${BignorAPI.getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!deleteResponse.ok) {
+            const errorData = await deleteResponse.json();
+            throw new Error(errorData.message || 'Failed to remove user');
+        }
+        
+        // Refresh displays
+        await renderPendingMembers();
+        await renderApprovedMembers();
+        
+        alert(`${fullName} has been removed from the system.\n\nTheir account and all bookings have been deleted.`);
     } catch (error) {
-        console.error('[Admin] Error removing user bookings:', error);
+        console.error('Error removing member:', error);
+        alert('Failed to remove member. Please try again.');
     }
-    
-    // Log the action before deletion
-    const logs = JSON.parse(localStorage.getItem('adminLoginLogs') || '[]');
-    logs.unshift({
-        timestamp: new Date().toISOString(),
-        admin: getCurrentAdmin()?.fullName || 'Admin',
-        action: 'Member Removal',
-        success: true,
-        message: `Removed approved member: ${user.fullName} (${user.email})`
-    });
-    localStorage.setItem('adminLoginLogs', JSON.stringify(logs.slice(0, 100)));
-    
-    // Remove user from array
-    users.splice(userIndex, 1);
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Refresh displays
-    renderPendingMembers();
-    renderApprovedMembers();
-    
-    alert(`${user.fullName} has been removed from the system.\n\nTheir account and all bookings have been deleted.`);
 }
 
 // Expose functions to window
