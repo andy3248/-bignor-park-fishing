@@ -251,13 +251,18 @@ async function approveMember(userId) {
         }
         
         // Call API to approve user
-        await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/approve`, {
+        const approveResponse = await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/approve`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${BignorAPI.getToken()}`,
                 'Content-Type': 'application/json'
             }
         });
+        
+        if (!approveResponse.ok) {
+            const errorData = await approveResponse.json();
+            throw new Error(errorData.message || 'Failed to approve user');
+        }
         
         // Refresh displays
         await renderPendingMembers();
@@ -289,13 +294,18 @@ async function rejectMember(userId) {
         }
         
         // Call API to reject (delete) user
-        await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/reject`, {
+        const rejectResponse = await fetch(`${BignorAPI.baseURL}/admin/users/${userId}/reject`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${BignorAPI.getToken()}`,
                 'Content-Type': 'application/json'
             }
         });
+        
+        if (!rejectResponse.ok) {
+            const errorData = await rejectResponse.json();
+            throw new Error(errorData.message || 'Failed to reject user');
+        }
         
         // Refresh displays
         await renderPendingMembers();
