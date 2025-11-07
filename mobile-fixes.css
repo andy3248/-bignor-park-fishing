@@ -1,0 +1,534 @@
+/* ============================================
+   AGGRESSIVE MOBILE FIXES - DECLUTTER
+   Priority CSS for mobile devices
+   ============================================ */
+
+/* Force proper box sizing */
+* {
+    box-sizing: border-box;
+}
+
+/* Prevent horizontal scroll */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* ============================================
+   MOBILE DEVICES (768px and below)
+   ============================================ */
+@media (max-width: 768px) {
+    /* Reduce body padding */
+    body {
+        padding-top: 70px !important;
+        font-size: 14px !important;
+    }
+    
+    /* ===== HEADER FIXES ===== */
+    .page-header {
+        padding: 8px 12px !important;
+        min-height: auto !important;
+        height: auto !important;
+    }
+    
+    .header-content {
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        width: 100%;
+    }
+    
+    .header-logo {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .header-text {
+        flex-shrink: 1;
+        min-width: 0;
+    }
+    
+    .header-text h1 {
+        font-size: 0.9rem !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .header-text h2 {
+        font-size: 0.6rem !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        white-space: nowrap;
+    }
+    
+    /* User menu on mobile */
+    .user-info {
+        gap: 8px !important;
+        flex-shrink: 0;
+    }
+    
+    .back-to-home-btn {
+        padding: 6px 10px !important;
+        font-size: 0 !important;
+        min-width: auto !important;
+    }
+    
+    .back-to-home-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+        margin: 0 !important;
+    }
+    
+    .user-menu-button {
+        padding: 4px 8px !important;
+        font-size: 0.8rem !important;
+        min-width: auto !important;
+    }
+    
+    .user-avatar {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .user-name {
+        display: none !important;
+    }
+    
+    .dropdown-arrow {
+        width: 12px !important;
+        height: 12px !important;
+    }
+    
+    /* ===== BOOKING HEADER FIXES ===== */
+    .booking-header-container {
+        padding: 0 10px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .admin-calendar-header {
+        padding: 12px !important;
+        gap: 10px !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+    
+    .admin-calendar-logo {
+        width: 40px !important;
+        height: 40px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .admin-calendar-title {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .admin-calendar-title h1 {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
+    }
+    
+    .admin-calendar-title p {
+        font-size: 0.75rem !important;
+        margin: 2px 0 0 0 !important;
+    }
+    
+    /* ===== BOOKING CONTAINER ===== */
+    .booking-container {
+        padding: 0 8px 15px 8px !important;
+        max-width: 100% !important;
+    }
+    
+    /* ===== TABS ===== */
+    .booking-tabs-container {
+        margin-bottom: 8px !important;
+        border-radius: 12px !important;
+    }
+    
+    .booking-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 0 !important;
+    }
+    
+    .tab-btn {
+        padding: 12px 10px !important;
+        font-size: 0.8rem !important;
+        min-width: 140px !important;
+        gap: 6px !important;
+    }
+    
+    .tab-btn svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    
+    /* ===== CALENDAR SECTION ===== */
+    .calendar-booking-container {
+        padding: 8px !important;
+    }
+    
+    .calendar-section {
+        padding: 15px 10px !important;
+        margin-bottom: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .calendar-header {
+        margin-bottom: 15px !important;
+        gap: 10px !important;
+    }
+    
+    .calendar-step {
+        font-size: 0.85rem !important;
+        gap: 6px !important;
+    }
+    
+    .step-number {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* ===== MONTH SELECTOR ===== */
+    .month-selector-wrapper {
+        gap: 4px !important;
+        padding: 0 !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .month-nav-btn {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        padding: 0 !important;
+    }
+    
+    .month-nav-btn svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    
+    .month-selector {
+        gap: 3px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+    }
+    
+    .month-selector::-webkit-scrollbar {
+        display: none !important;
+    }
+    
+    .month-btn {
+        padding: 6px 10px !important;
+        font-size: 0.7rem !important;
+        min-width: 45px !important;
+        border-radius: 20px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* ===== CALENDAR GRID ===== */
+    .calendar-grid {
+        margin-bottom: 12px !important;
+        border-radius: 12px !important;
+    }
+    
+    .calendar-header-row > div {
+        padding: 8px 2px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .calendar-days {
+        gap: 3px !important;
+        padding: 10px 6px !important;
+    }
+    
+    .calendar-day {
+        font-size: 0.8rem !important;
+        min-height: 60px !important;
+        padding: 4px !important;
+        border-radius: 6px !important;
+        border-width: 1px !important;
+    }
+    
+    .calendar-day-status {
+        font-size: 0.55rem !important;
+        padding: 2px 4px !important;
+        margin-top: 2px !important;
+    }
+    
+    /* ===== LAKE AVAILABILITY ===== */
+    .lake-availability-section {
+        padding: 15px 10px !important;
+        margin-top: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .availability-header {
+        margin-bottom: 15px !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        align-items: flex-start !important;
+    }
+    
+    .availability-header h3 {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    .lake-availability-grid {
+        gap: 12px !important;
+    }
+    
+    .lake-availability-card {
+        padding: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .lake-card-header h4 {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    .lake-card-content p {
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    .availability-status {
+        font-size: 0.65rem !important;
+        padding: 4px 10px !important;
+    }
+    
+    .book-lake-btn {
+        padding: 12px 16px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* ===== BOOKING FORM ===== */
+    .booking-form-section {
+        padding: 15px 10px !important;
+        margin-top: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .form-header {
+        margin-bottom: 15px !important;
+    }
+    
+    .form-header h3 {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    .booking-form {
+        padding: 15px !important;
+        border-radius: 10px !important;
+    }
+    
+    .form-group {
+        margin-bottom: 15px !important;
+    }
+    
+    .form-group label {
+        font-size: 0.85rem !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .form-group textarea {
+        min-height: 80px !important;
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+    
+    .form-actions {
+        gap: 8px !important;
+        margin-top: 15px !important;
+    }
+    
+    .cancel-btn,
+    .submit-booking-btn {
+        padding: 12px 20px !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+    }
+    
+    /* ===== ACTIVE BOOKING ===== */
+    .active-booking-container {
+        padding: 15px 8px !important;
+    }
+    
+    .active-booking-header {
+        padding: 15px 10px !important;
+        margin-bottom: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .active-booking-header h3 {
+        font-size: 1.3rem !important;
+    }
+    
+    .active-booking-header p {
+        font-size: 0.85rem !important;
+    }
+    
+    /* ===== LEGEND ===== */
+    .availability-legend {
+        gap: 12px !important;
+        padding: 10px 0 !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+    
+    .legend-item {
+        font-size: 0.8rem !important;
+        gap: 6px !important;
+    }
+    
+    .legend-circle {
+        width: 12px !important;
+        height: 12px !important;
+    }
+}
+
+/* ============================================
+   SMALL MOBILE (480px and below)
+   ============================================ */
+@media (max-width: 480px) {
+    body {
+        padding-top: 65px !important;
+        font-size: 13px !important;
+    }
+    
+    .page-header {
+        padding: 6px 10px !important;
+    }
+    
+    .header-logo {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .header-text h1 {
+        font-size: 0.8rem !important;
+    }
+    
+    .header-text h2 {
+        font-size: 0.55rem !important;
+    }
+    
+    .user-avatar {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .admin-calendar-logo {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .admin-calendar-title h1 {
+        font-size: 1rem !important;
+    }
+    
+    .admin-calendar-title p {
+        font-size: 0.7rem !important;
+    }
+    
+    .tab-btn {
+        padding: 10px 8px !important;
+        font-size: 0.75rem !important;
+        min-width: 120px !important;
+    }
+    
+    .calendar-day {
+        min-height: 55px !important;
+        font-size: 0.75rem !important;
+        padding: 3px !important;
+    }
+    
+    .month-btn {
+        padding: 5px 8px !important;
+        font-size: 0.65rem !important;
+        min-width: 40px !important;
+    }
+}
+
+/* ============================================
+   EXTRA SMALL (375px and below)
+   ============================================ */
+@media (max-width: 375px) {
+    body {
+        padding-top: 60px !important;
+    }
+    
+    .page-header {
+        padding: 5px 8px !important;
+    }
+    
+    .header-logo {
+        width: 26px !important;
+        height: 26px !important;
+    }
+    
+    .header-text h1 {
+        font-size: 0.75rem !important;
+    }
+    
+    .header-text h2 {
+        font-size: 0.5rem !important;
+    }
+    
+    .calendar-day {
+        min-height: 50px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .calendar-header-row > div {
+        padding: 6px 1px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .calendar-days {
+        gap: 2px !important;
+        padding: 8px 4px !important;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Prevent text overflow */
+@media (max-width: 768px) {
+    h1, h2, h3, h4, h5, h6 {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        hyphens: auto !important;
+    }
+    
+    /* Ensure images don't break layout */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Prevent horizontal scroll from any element */
+    .booking-container,
+    .calendar-section,
+    .lake-availability-section,
+    .booking-form-section {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+}
+

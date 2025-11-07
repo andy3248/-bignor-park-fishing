@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Redirecting...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        .redirect-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .redirect-message {
+            background: rgba(72, 209, 204, 0.1);
+            border-left: 4px solid #48d1cc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .redirect-message strong {
+            color: #20b2aa;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #48d1cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .manual-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .manual-link a {
+            color: #48d1cc;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .manual-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="redirect-container">
+        <img src="../carp-logo.png" alt="Bignor Park" class="logo">
+        <h1>Admin Login</h1>
+        <p>Admin login has been consolidated with the main login page.</p>
+        
+        <div class="redirect-message">
+            <p><strong>How to login as admin:</strong></p>
+            <p>Use the main login page and <strong>leave the fishing code field blank</strong></p>
+        </div>
+        
+        <div class="spinner"></div>
+        <p style="color: #9ca3af; font-size: 0.9rem;">Redirecting you now...</p>
+        
+        <div class="manual-link">
+            <p>Not redirecting? <a href="../index.html">Click here to go to login page</a></p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-redirect after 3 seconds
+        setTimeout(function() {
+            window.location.href = '../index.html';
+        }, 3000);
+    </script>
+</body>
+</html>

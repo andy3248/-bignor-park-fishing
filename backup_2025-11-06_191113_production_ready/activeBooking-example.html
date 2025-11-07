@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Booking System - Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #48d1cc; margin-top: 0; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #48d1cc; padding-bottom: 10px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #48d1cc;
+        }
+        button {
+            background: #48d1cc;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #20b2aa;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        .booking-card {
+            background: linear-gradient(135deg, #48d1cc 0%, #20b2aa 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .booking-card.upcoming { background: linear-gradient(135deg, #ffd500 0%, #ffaa00 100%); }
+        .booking-card.completed { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+        .booking-card h3 { margin-top: 0; }
+        .booking-card p { margin: 8px 0; opacity: 0.95; }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .availability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .lake-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        .lake-card h4 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .spots-available {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #48d1cc;
+            margin: 10px 0;
+        }
+        .spots-full {
+            color: #dc3545;
+        }
+        #output {
+            background: #2c3e50;
+            color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .success { color: #28a745; font-weight: 600; }
+        .error { color: #dc3545; font-weight: 600; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🎣 Active Booking System - Live Demo</h1>
+
+    <div class="container">
+        <h2>Create New Booking</h2>
+        <div class="form-group">
+            <label for="userId">User Email:</label>
+            <input type="email" id="userId" value="test@example.com" placeholder="user@example.com">
+        </div>
+        <div class="form-group">
+            <label for="userName">User Name:</label>
+            <input type="text" id="userName" value="Test User" placeholder="John Doe">
+        </div>
+        <div class="form-group">
+            <label for="lakeSelect">Select Lake:</label>
+            <select id="lakeSelect">
+                <option value="bignor-main">Bignor Main Lake</option>
+                <option value="wood-pool">Wood Pool</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dateInput">Session Date:</label>
+            <input type="date" id="dateInput">
+        </div>
+        <div class="form-group">
+            <label for="notes">Notes (optional):</label>
+            <input type="text" id="notes" placeholder="First session of the season...">
+        </div>
+        <button onclick="createBooking()">Create Booking</button>
+        <button class="secondary" onclick="checkAvailability()">Check Availability</button>
+    </div>
+
+    <div class="container">
+        <h2>View Booking</h2>
+        <div class="form-group">
+            <label for="viewUserId">User Email:</label>
+            <input type="email" id="viewUserId" value="test@example.com">
+        </div>
+        <button onclick="viewBooking()">View Booking</button>
+        <button class="danger" onclick="deleteBooking()">Delete Booking</button>
+        <button class="secondary" onclick="viewAllBookings()">View All Bookings</button>
+        
+        <div id="bookingDisplay" style="margin-top: 20px;"></div>
+    </div>
+
+    <div class="container">
+        <h2>Check Lake Availability</h2>
+        <div class="form-group">
+            <label for="availDate">Select Date:</label>
+            <input type="date" id="availDate">
+        </div>
+        <button onclick="checkLakeAvailability()">Check Availability</button>
+        
+        <div id="availabilityDisplay"></div>
+    </div>
+
+    <div class="container">
+        <h2>System Actions</h2>
+        <button class="secondary" onclick="cleanupExpired()">Cleanup Expired Bookings</button>
+        <button class="secondary" onclick="clearAllBookings()">Clear All Bookings</button>
+        <button class="secondary" onclick="testTimezoneConsistency()">Test Timezone Consistency</button>
+    </div>
+
+    <div class="container">
+        <h2>Console Output</h2>
+        <div id="output"></div>
+    </div>
+
+    <script src="activeBooking.js"></script>
+    <script>
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dateStr = tomorrow.toISOString().split('T')[0];
+        document.getElementById('dateInput').value = dateStr;
+        document.getElementById('availDate').value = dateStr;
+
+        const { 
+            startOfLocalDayAsUTC,
+            setActiveBooking,
+            getActiveBooking,
+            clearActiveBooking,
+            getAllActiveBookingsForDate,
+            getAllActiveBookingsByLake,
+            isLakeAvailable,
+            getAvailableSpots,
+            formatBookingForDisplay,
+            cleanupExpiredBookings,
+            formatDateUK_UTC,
+            formatTimeHM_UTC
+        } = window.ActiveBookingSystem;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function createBooking() {
+            const userId = document.getElementById('userId').value;
+            const userName = document.getElementById('userName').value;
+            const lakeSlug = document.getElementById('lakeSelect').value;
+            const dateInput = document.getElementById('dateInput').value;
+            const notes = document.getElementById('notes').value;
+
+            if (!userId || !userName || !dateInput) {
+                log('Please fill in all required fields', 'error');
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            const lakeName = lakeSlug === 'bignor-main' ? 'Bignor Main Lake' : 'Wood Pool';
+            const startUtc = startOfLocalDayAsUTC(dateInput);
+            const endUtc = startUtc + (24 * 60 * 60 * 1000);
+
+            const booking = {
+                id: 'BK-' + Date.now(),
+                userId: userId,
+                userName: userName,
+                lakeSlug: lakeSlug,
+                lakeName: lakeName,
+                startUtc: startUtc,
+                endUtc: endUtc,
+                bookedOnUtc: Date.now(),
+                notes: notes || undefined
+            };
+
+            setActiveBooking(booking);
+            log(`✅ Booking created for ${userName} at ${lakeName}`, 'success');
+            log(`   Session: ${formatDateUK_UTC(startUtc)}`, 'info');
+            log(`   Booking ID: ${booking.id}`, 'info');
+            
+            viewBooking();
+        }
+
+        function viewBooking() {
+            const userId = document.getElementById('viewUserId').value;
+            if (!userId) {
+                log('Please enter a user email', 'error');
+                return;
+            }
+
+            const booking = getActiveBooking(userId);
+            const display = document.getElementById('bookingDisplay');
+
+            if (!booking) {
+                display.innerHTML = '<p style="color: #6c757d; font-style: italic;">No booking found for this user</p>';
+                log(`ℹ️ No booking found for ${userId}`, 'info');
+                return;
+            }
+
+            const formatted = formatBookingForDisplay(booking);
+            
+            display.innerHTML = `
+                <div class="booking-card ${formatted.status}">
+                    <h3>${formatted.lakeName}</h3>
+                    <span class="status-badge">${formatted.status}</span>
+                    <p><strong>User:</strong> ${booking.userName} (${booking.userId})</p>
+                    <p><strong>Session Date:</strong> ${formatted.sessionDate}</p>
+                    <p><strong>Start Time:</strong> ${formatted.startTime}</p>
+                    <p><strong>End Time:</strong> ${formatted.endTime}</p>
+                    <p><strong>Booked On:</strong> ${formatted.bookedOn}</p>
+                    <p><strong>Booking ID:</strong> ${booking.id}</p>
+                    ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
+                </div>
+            `;
+
+            log(`📋 Viewed booking for ${booking.userName}`, 'info');
+        }
+
+        function deleteBooking() {
+            const userId = document.getElementById('viewUserId').value;
+            if (!userId) {
+                log('Please enter a user email', 'error');
+                return;
+            }
+
+            const booking = getActiveBooking(userId);
+            if (!booking) {
+                log(`ℹ️ No booking found for ${userId}`, 'info');
+                alert('No booking found for this user');
+                return;
+            }
+
+            if (confirm(`Delete booking for ${booking.userName}?`)) {
+                clearActiveBooking(userId);
+                document.getElementById('bookingDisplay').innerHTML = '';
+                log(`🗑️ Deleted booking for ${userId}`, 'success');
+                alert('Booking deleted successfully');
+            }
+        }
+
+        function viewAllBookings() {
+            const bookings = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('bp_active_booking_')) {
+                    const booking = JSON.parse(localStorage.getItem(key));
+                    bookings.push(booking);
+                }
+            }
+
+            const display = document.getElementById('bookingDisplay');
+            
+            if (bookings.length === 0) {
+                display.innerHTML = '<p style="color: #6c757d; font-style: italic;">No bookings found</p>';
+                log('ℹ️ No bookings in system', 'info');
+                return;
+            }
+
+            display.innerHTML = bookings.map(booking => {
+                const formatted = formatBookingForDisplay(booking);
+                return `
+                    <div class="booking-card ${formatted.status}">
+                        <h3>${formatted.lakeName}</h3>
+                        <span class="status-badge">${formatted.status}</span>
+                        <p><strong>User:</strong> ${booking.userName} (${booking.userId})</p>
+                        <p><strong>Session:</strong> ${formatted.sessionDate}</p>
+                        <p><strong>Booked:</strong> ${formatted.bookedOn}</p>
+                    </div>
+                `;
+            }).join('');
+
+            log(`📋 Viewing ${bookings.length} total bookings`, 'info');
+        }
+
+        function checkLakeAvailability() {
+            const dateInput = document.getElementById('availDate').value;
+            if (!dateInput) {
+                log('Please select a date', 'error');
+                return;
+            }
+
+            const MAX_CAPACITY = {
+                'bignor-main': 5,
+                'wood-pool': 3
+            };
+
+            const bookingsByLake = getAllActiveBookingsByLake(dateInput);
+            const display = document.getElementById('availabilityDisplay');
+
+            const html = `
+                <div class="availability-grid">
+                    ${Object.entries(MAX_CAPACITY).map(([lakeSlug, maxCap]) => {
+                        const spots = getAvailableSpots(lakeSlug, dateInput, maxCap);
+                        const lakeName = lakeSlug === 'bignor-main' ? 'Bignor Main Lake' : 'Wood Pool';
+                        const available = spots > 0;
+                        return `
+                            <div class="lake-card">
+                                <h4>${lakeName}</h4>
+                                <div class="spots-available ${available ? '' : 'spots-full'}">
+                                    ${spots} of ${maxCap}
+                                </div>
+                                <p>${available ? 'spots available' : 'FULLY BOOKED'}</p>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            display.innerHTML = html;
+            log(`🔍 Checked availability for ${formatDateUK_UTC(startOfLocalDayAsUTC(dateInput))}`, 'info');
+        }
+
+        function cleanupExpired() {
+            const count = cleanupExpiredBookings();
+            log(`🧹 Cleaned up ${count} expired bookings`, 'success');
+            alert(`Cleaned up ${count} expired bookings`);
+            viewAllBookings();
+        }
+
+        function clearAllBookings() {
+            if (!confirm('Delete ALL bookings? This cannot be undone!')) {
+                return;
+            }
+
+            let count = 0;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('bp_active_booking_')) {
+                    keysToRemove.push(key);
+                }
+            }
+
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                count++;
+            });
+
+            document.getElementById('bookingDisplay').innerHTML = '';
+            log(`🗑️ Cleared all ${count} bookings`, 'success');
+            alert(`Cleared ${count} bookings`);
+        }
+
+        function testTimezoneConsistency() {
+            log('🧪 Testing timezone consistency...', 'info');
+            
+            const testDate = '2025-12-25';
+            const utcMs = startOfLocalDayAsUTC(testDate);
+            
+            log(`   Input: ${testDate}`, 'info');
+            log(`   UTC timestamp: ${utcMs}`, 'info');
+            log(`   Formatted (UK): ${formatDateUK_UTC(utcMs)}`, 'info');
+            log(`   Time: ${formatTimeHM_UTC(utcMs)}`, 'info');
+            
+            const date = new Date(utcMs);
+            log(`   UTC Date: ${date.toUTCString()}`, 'info');
+            log(`   ISO: ${date.toISOString()}`, 'info');
+            
+            log('✅ Timezone test complete', 'success');
+        }
+
+        // Initial load
+        log('🎣 Active Booking System Demo loaded', 'success');
+        log('👉 Try creating a booking above', 'info');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

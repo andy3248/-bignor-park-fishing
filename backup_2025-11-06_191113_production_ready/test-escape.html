@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test escapeHtml Function</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-case { margin: 10px 0; padding: 10px; border-radius: 4px; border-left: 4px solid #ccc; }
+        .test-case.success { background-color: #f1f8e9; border-left-color: #4CAF50; }
+        .test-case.error { background-color: #ffebee; border-left-color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>escapeHtml Function Test</h1>
+    <div id="results"></div>
+
+    <script>
+        // Your exact escapeHtml function
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Test cases
+        const testCases = [
+            { input: 'Normal text', expected: 'Normal text' },
+            { input: 'Text with <script>alert("xss")</script>', expected: 'Text with &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' },
+            { input: 'Ampersand & symbol', expected: 'Ampersand &amp; symbol' },
+            { input: 'Quotes "double" and \'single\'', expected: 'Quotes &quot;double&quot; and &#039;single&#039;' },
+            { input: 'HTML tags <div>content</div>', expected: 'HTML tags &lt;div&gt;content&lt;/div&gt;' },
+            { input: '', expected: '' },
+            { input: null, expected: '' },
+            { input: undefined, expected: '' }
+        ];
+
+        // Run tests
+        let allPassed = true;
+        let results = '<h2>Test Results:</h2>';
+
+        testCases.forEach((testCase, index) => {
+            const result = escapeHtml(testCase.input);
+            const passed = result === testCase.expected;
+            allPassed = allPassed && passed;
+
+            results += `
+                <div class="test-case ${passed ? 'success' : 'error'}">
+                    <strong>Test ${index + 1}:</strong> ${passed ? '✅ PASS' : '❌ FAIL'}<br>
+                    <strong>Input:</strong> ${JSON.stringify(testCase.input)}<br>
+                    <strong>Expected:</strong> ${JSON.stringify(testCase.expected)}<br>
+                    <strong>Got:</strong> ${JSON.stringify(result)}<br>
+                </div>
+            `;
+        });
+
+        results += `<br><strong>Overall Result:</strong> ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`;
+
+        document.getElementById('results').innerHTML = results;
+        console.log('escapeHtml test completed:', allPassed ? 'ALL PASSED' : 'SOME FAILED');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
