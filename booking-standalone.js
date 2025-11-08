@@ -88,16 +88,52 @@ function loadUserData() {
     }
 }
 
-// Load bookings from localStorage
-function loadBookingsFromStorage() {
+// Load bookings from API
+async function loadBookingsFromStorage() {
     try {
-        const storedBookings = localStorage.getItem(STORAGE_KEY);
-        bookings = storedBookings ? JSON.parse(storedBookings) : [];
-        console.log(`[Booking] Loaded ${bookings.length} bookings`);
+        console.log('[Booking] Loading bookings from API...');
+        
+        // Check if BignorAPI is available
+        if (!window.BignorAPI) {
+            console.error('[Booking] BignorAPI not available yet, will retry...');
+            bookings = [];
+            return;
+        }
+        
+        // Get all active bookings from API
+        const response = await BignorAPI.bookings.getMyBookings(100);
+        const apiBookings = response.bookings || [];
+        
+        // Map API format to frontend format
+        bookings = apiBookings.map(b => ({
+            id: b.bookingId || b.id,
+            userId: currentUser?.email || '',
+            user_id: currentUser?.id,
+            userName: currentUser?.fullName || `${currentUser?.firstName} ${currentUser?.lastName}`,
+            lake: getLakeIdFromName(b.lakeName), // Convert lake name back to ID
+            lakeName: b.lakeName,
+            date: b.bookingDate, // API uses bookingDate, frontend expects date
+            bookingDate: b.bookingDate,
+            notes: b.notes || '',
+            status: b.status === 'active' ? 'upcoming' : b.status, // Map 'active' to 'upcoming'
+            createdAt: b.createdAt
+        }));
+        
+        console.log(`[Booking] Loaded ${bookings.length} bookings from API:`, bookings);
     } catch (error) {
-        console.error('[Booking] Error loading bookings:', error);
+        console.error('[Booking] Error loading bookings from API:', error);
         bookings = [];
     }
+}
+
+// Helper function to convert lake name to ID
+function getLakeIdFromName(lakeName) {
+    const lakeMap = {
+        'Bignor Lake': '1',
+        'Fox Lake': '2',
+        'Syndicate Lake': '3'
+    };
+    return lakeMap[lakeName] || '1';
 }
 
 // Save bookings to localStorage
@@ -300,7 +336,7 @@ function bookLake(lake) {
 }
 
 // Confirm booking
-function confirmBooking() {
+async function confirmBooking() {
     console.log('[Booking] Confirming booking...');
     
     if (!selectedDate) {
@@ -332,6 +368,7 @@ function confirmBooking() {
         return;
     }
     
+    // Check lake availability from current data
     const dateBookings = bookings.filter(booking => 
         booking.date === dateString && booking.status !== 'cancelled'
     );
@@ -344,85 +381,76 @@ function confirmBooking() {
         return;
     }
     
-    const newBooking = {
-        id: Date.now().toString(),
-        userId: currentUser.email,
-        userName: currentUser.fullName || currentUser.email,
-        lake: selectedLake,
-        lakeName: getLakeName(selectedLake),
-        date: dateString,
-        notes: notes,
-        status: 'upcoming',
-        createdAt: new Date().toISOString()
-    };
-    
-    bookings.push(newBooking);
-    saveBookingsToStorage();
-    checkBookingRestriction();
-    loadActiveBooking();
-    
-    // ALSO save to UTC booking system for persistence across pages
-    if (window.ActiveBookingSystem && window.ActiveBookingSystem.startOfLocalDayAsUTC) {
-        try {
-            // Convert lake slug to proper format
-            let lakeSlug = selectedLake;
-            if (lakeSlug === 'bignor') lakeSlug = 'bignor-main';
-            if (lakeSlug === 'wood') lakeSlug = 'wood-pool';
-            
-            // Calculate UTC timestamps
-            const startUtc = window.ActiveBookingSystem.startOfLocalDayAsUTC(dateString);
-            const endUtc = startUtc + (24 * 60 * 60 * 1000); // 24 hours
-            
-            // Create UTC format booking
-            const utcBooking = {
-                id: 'BK-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-                userId: currentUser.email,
-                userName: currentUser.fullName || currentUser.email,
-                lakeSlug: lakeSlug,
-                lakeName: getLakeName(selectedLake),
-                startUtc: startUtc,
-                endUtc: endUtc,
-                bookedOnUtc: Date.now(),
-                notes: notes || ''
-            };
-            
-            // Save to UTC system
-            window.ActiveBookingSystem.setActiveBooking(utcBooking);
-            console.log('[Booking] Also saved to UTC system:', utcBooking);
-            
-            // Booking status removed from dropdown - not needed
-            // if (window.UserDropdown && window.UserDropdown.updateBookingStatus) {
-            //     setTimeout(function() {
-            //         window.UserDropdown.updateBookingStatus();
-            //     }, 100);
-            // }
-        } catch (error) {
-            console.error('[Booking] Error saving to UTC system:', error);
+    // Create booking via API
+    try {
+        console.log('[Booking] Creating booking via API...');
+        
+        // Check if BignorAPI is available
+        if (!window.BignorAPI) {
+            throw new Error('API client not available. Please refresh the page.');
         }
-    }
-    
-    if (selectedDate) {
-        updateLakeAvailability(dateString);
-    }
-    
-    resetBooking();
-    
-    // Show the booking success modal with the new booking details
-    showBookingSuccessModal(newBooking);
-    console.log('[Booking] Booking confirmed:', newBooking.id);
-    
-    // Reload active booking display and table
-    setTimeout(function() {
-        const container = document.getElementById('activeBookingContent');
-        if (container && window.ActiveBookingSystem) {
-            const booking = window.ActiveBookingSystem.getActiveBooking(currentUser.email);
-            if (booking && window.renderActiveBookingCard) {
-                renderActiveBookingCard(currentUser.email, container);
+        
+        // Call API to create booking
+        const response = await BignorAPI.bookings.createBooking({
+            lakeId: parseInt(selectedLake), // Convert to lake ID (1, 2, or 3)
+            lakeName: getLakeName(selectedLake),
+            bookingDate: dateString,
+            notes: notes || ''
+        });
+        
+        console.log('[Booking] Booking created successfully via API:', response);
+        
+        // Set booking restriction AFTER successful booking
+        setLastBookingTime();
+        console.log('[Booking] Set last booking time');
+        
+        // Reload bookings from API to get updated list
+        await loadBookingsFromStorage();
+        
+        // Update restrictions and active booking display
+        checkBookingRestriction();
+        await loadActiveBooking();
+        
+        // Update lake availability display to reflect the new booking
+        if (selectedDate) {
+            updateLakeAvailability(dateString);
+        }
+        
+        // Reset form
+        resetBooking();
+        
+        // Show the booking success modal with the new booking details
+        const newBooking = {
+            id: response.booking.id || response.booking.bookingId,
+            userId: currentUser.email,
+            userName: currentUser.fullName || currentUser.email,
+            lake: selectedLake,
+            lakeName: getLakeName(selectedLake),
+            date: dateString,
+            notes: notes,
+            status: 'upcoming',
+            createdAt: response.booking.createdAt || new Date().toISOString()
+        };
+        showBookingSuccessModal(newBooking);
+        console.log('[Booking] Booking confirmed:', newBooking.id);
+        
+        // Reload active booking display and table
+        setTimeout(function() {
+            const container = document.getElementById('activeBookingContent');
+            if (container && window.ActiveBookingSystem) {
+                const booking = window.ActiveBookingSystem.getActiveBooking(currentUser.email);
+                if (booking && window.renderActiveBookingCard) {
+                    renderActiveBookingCard(currentUser.email, container);
+                }
             }
-        }
-        // Refresh bookings table
-        renderBookingsTable(currentUser.email);
-    }, 200);
+            // Refresh bookings table
+            renderBookingsTable(currentUser.email);
+        }, 200);
+        
+    } catch (error) {
+        console.error('[Booking] Error confirming booking via API:', error);
+        alert(error.message || 'There was an error confirming your booking. Please check if the backend server is running and try again.');
+    }
 }
 
 // Reset booking
