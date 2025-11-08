@@ -136,6 +136,45 @@ function getLakeIdFromName(lakeName) {
     return lakeMap[lakeName] || '1';
 }
 
+// Helper function to convert lake slug to numeric ID for API
+function getLakeIdFromSlug(slug) {
+    const slugToId = {
+        // Bignor Main Lake
+        'bignor': 1,
+        'bignor-main': 1,
+        '1': 1,
+        // Wood Pool (Fox Lake in database)
+        'wood': 2,
+        'wood-pool': 2,
+        'fox': 2,
+        '2': 2,
+        // Syndicate Lake
+        'syndicate': 3,
+        '3': 3
+    };
+    
+    const id = slugToId[slug];
+    console.log('[Booking] Converting slug "' + slug + '" → Lake ID:', id);
+    return id || null;
+}
+
+// Helper function to get API-compatible lake name
+function getApiLakeName(slug) {
+    const lakeNames = {
+        'bignor': 'Bignor Lake',
+        'bignor-main': 'Bignor Lake',
+        '1': 'Bignor Lake',
+        'wood': 'Fox Lake',
+        'wood-pool': 'Fox Lake',
+        'fox': 'Fox Lake',
+        '2': 'Fox Lake',
+        'syndicate': 'Syndicate Lake',
+        '3': 'Syndicate Lake'
+    };
+    
+    return lakeNames[slug] || getLakeName(slug);
+}
+
 // Save bookings to localStorage
 function saveBookingsToStorage() {
     try {
@@ -390,10 +429,25 @@ async function confirmBooking() {
             throw new Error('API client not available. Please refresh the page.');
         }
         
+        // Convert lake slug to ID
+        const lakeId = getLakeIdFromSlug(selectedLake);
+        const lakeName = getApiLakeName(selectedLake);
+        
+        if (!lakeId) {
+            throw new Error('Invalid lake selection. Please try again.');
+        }
+        
+        console.log('[Booking] Creating booking with:');
+        console.log('  - Lake Slug:', selectedLake);
+        console.log('  - Lake ID:', lakeId);
+        console.log('  - Lake Name:', lakeName);
+        console.log('  - Date:', dateString);
+        console.log('  - Notes:', notes || '(none)');
+        
         // Call API to create booking
         const response = await BignorAPI.bookings.createBooking({
-            lakeId: parseInt(selectedLake), // Convert to lake ID (1, 2, or 3)
-            lakeName: getLakeName(selectedLake),
+            lakeId: lakeId,
+            lakeName: lakeName,
             bookingDate: dateString,
             notes: notes || ''
         });
