@@ -7,50 +7,65 @@ let bookingToCancel = null;
 document.addEventListener('DOMContentLoaded', function() {
     loadAllBookings();
     
-    // Auto-refresh every 60 seconds to keep bookings up to date
+    // Auto-refresh every 30 seconds to keep bookings up to date
     setInterval(() => {
         loadAllBookings();
-    }, 60000); // 60 seconds
+    }, 30000); // 30 seconds
 });
 
-// Load all bookings
-function loadAllBookings() {
+// Load all bookings from API
+async function loadAllBookings() {
     try {
-        const stored = localStorage.getItem('bignor_park_bookings');
-        const rawBookings = stored ? JSON.parse(stored) : [];
+        console.log('[Admin] Loading all bookings from API...');
         
-        // AUTO-REMOVE EXPIRED BOOKINGS - Filter out bookings where date has passed
-        const now = Date.now();
-        allBookings = rawBookings.filter(booking => {
-            if (booking.status === 'cancelled') {
-                return true; // Keep cancelled bookings for records
-            }
-            
-            // Check if booking date has expired
-            if (booking.endUtc) {
-                return booking.endUtc > now || booking.status === 'completed';
-            }
-            
-            // Legacy format - check date
-            const bookingDate = new Date(booking.date + 'T00:00:00');
-            const bookingEnd = bookingDate.getTime() + (24 * 60 * 60 * 1000); // +24 hours
-            
-            // Keep if not expired OR if already marked as completed/cancelled
-            return bookingEnd > now || booking.status === 'completed' || booking.status === 'cancelled';
-        });
+        // Get all bookings from API
+        const response = await BignorAPI.admin.getAllBookings({});
+        const apiBookings = response.bookings || [];
         
-        // Update storage if bookings were removed
-        if (allBookings.length < rawBookings.length) {
-            localStorage.setItem('bignor_park_bookings', JSON.stringify(allBookings));
-            console.log(`✅ Admin: Removed ${rawBookings.length - allBookings.length} expired bookings`);
-        }
+        console.log(`[Admin] Loaded ${apiBookings.length} bookings from API`);
+        
+        // Map API format to admin format
+        allBookings = apiBookings.map(b => ({
+            id: b.bookingId || b.id,
+            userId: b.userEmail,
+            userName: b.userName,
+            lake: getLakeSlugFromName(b.lakeName),
+            lakeName: b.lakeName,
+            date: b.bookingDate,
+            notes: b.notes || '',
+            status: b.status,
+            createdAt: b.createdAt,
+            cancelledAt: b.cancelledAt
+        }));
         
         filteredBookings = [...allBookings];
-
         renderBookingsTable();
+        
     } catch (error) {
-        console.error('[Admin] Error loading bookings:', error);
+        console.error('[Admin] Error loading bookings from API:', error);
+        // Show error to user
+        const tableBody = document.getElementById('bookingsTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #e74c3c;">
+                        <strong>Error loading bookings from API</strong><br>
+                        ${error.message || 'Unable to connect to server'}
+                    </td>
+                </tr>
+            `;
+        }
     }
+}
+
+// Helper function to convert lake name to slug
+function getLakeSlugFromName(lakeName) {
+    const lakeMap = {
+        'Bignor Lake': 'bignor',
+        'Fox Lake': 'fox',
+        'Syndicate Lake': 'syndicate'
+    };
+    return lakeMap[lakeName] || 'bignor';
 }
 
 // Filter bookings
@@ -234,24 +249,26 @@ function closeCancelModal() {
 }
 
 // Confirm cancel booking
-function confirmCancelBooking() {
+async function confirmCancelBooking() {
     if (!bookingToCancel) return;
 
     try {
-        const booking = allBookings.find(b => b.id === bookingToCancel);
-        if (booking) {
-            booking.status = 'cancelled';
-            localStorage.setItem('bignor_park_bookings', JSON.stringify(allBookings));
-
-            loadAllBookings();
-            filterBookings();
-            closeCancelModal();
-
-            alert('Booking cancelled successfully');
-        }
+        console.log('[Admin] Cancelling booking via API:', bookingToCancel);
+        
+        // Call API to cancel booking
+        await BignorAPI.admin.cancelBooking(bookingToCancel);
+        
+        console.log('[Admin] Booking cancelled successfully via API');
+        
+        // Reload bookings from API
+        await loadAllBookings();
+        
+        closeCancelModal();
+        alert('Booking cancelled successfully');
+        
     } catch (error) {
         console.error('[Admin] Error cancelling booking:', error);
-        alert('Error cancelling booking. Please try again.');
+        alert(error.message || 'Error cancelling booking. Please try again.');
     }
 }
 

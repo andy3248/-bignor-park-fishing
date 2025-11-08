@@ -334,73 +334,27 @@ function createBookingCard(booking) {
     `;
 }
 
-// Cancel user booking - Properly lifts booking restriction
-function cancelUserBooking(bookingId, userEmail) {
+// Cancel user booking - Uses API to ensure cross-browser sync
+async function cancelUserBooking(bookingId, userEmail) {
     if (!confirm('Are you sure you want to cancel this booking?\n\nThis will lift the booking restriction and allow the user to book immediately for this date/lake combination.')) {
         return;
     }
     
     try {
-        console.log(`[Admin] Cancelling booking ${bookingId} for user ${userEmail}`);
+        console.log(`[Admin] Cancelling booking ${bookingId} for user ${userEmail} via API`);
         
-        // 1. Update allBookings - mark as cancelled (don't delete, for records)
-        let allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        const allBooking = allBookings.find(b => b.id === bookingId);
-        if (allBooking) {
-            allBooking.status = 'cancelled';
-            console.log(`[Admin] Marked booking as cancelled in allBookings`);
-        }
-        localStorage.setItem('allBookings', JSON.stringify(allBookings));
+        // Call API to cancel booking
+        await BignorAPI.admin.cancelBooking(bookingId);
         
-        // 2. Update bignor_park_bookings - mark as cancelled (don't delete, for records)
-        let bignorBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
-        const bignorBooking = bignorBookings.find(b => b.id === bookingId);
-        if (bignorBooking) {
-            bignorBooking.status = 'cancelled';
-            console.log(`[Admin] Marked booking as cancelled in bignor_park_bookings`);
-        }
-        localStorage.setItem('bignor_park_bookings', JSON.stringify(bignorBookings));
+        console.log(`[Admin] ✅ Booking cancelled successfully via API. User can now rebook.`);
         
-        // 3. Remove from user's active booking if it matches
-        const activeBookingKey = `activeBooking_${userEmail}`;
-        const activeBooking = localStorage.getItem(activeBookingKey);
-        if (activeBooking) {
-            try {
-                const parsed = JSON.parse(activeBooking);
-                if (parsed.id === bookingId) {
-                    localStorage.removeItem(activeBookingKey);
-                    console.log(`[Admin] Removed from user's active booking`);
-                }
-            } catch (e) {
-                console.error('[Admin] Error parsing active booking:', e);
-            }
-        }
+        // Reload bookings from API to get updated list
+        await loadAllBookings();
         
-        // 4. Clear ActiveBookingSystem if it exists
-        if (window.ActiveBookingSystem && window.ActiveBookingSystem.clearBooking) {
-            window.ActiveBookingSystem.clearBooking(userEmail);
-            console.log(`[Admin] Cleared from ActiveBookingSystem`);
-        }
-        
-        // 5. Clear from bookings storage (legacy)
-        try {
-            let bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-            const legacyBooking = bookings.find(b => b.id === bookingId);
-            if (legacyBooking) {
-                legacyBooking.status = 'cancelled';
-                localStorage.setItem('bookings', JSON.stringify(bookings));
-                console.log(`[Admin] Marked booking as cancelled in legacy bookings`);
-            }
-        } catch (e) {
-            console.error('[Admin] Error updating legacy bookings:', e);
-        }
-        
-        console.log(`[Admin] ✅ Booking cancelled successfully. User can now rebook.`);
-        
-        // Refresh calendar
+        // Refresh calendar with new data
         renderCalendar(currentYear, currentMonth);
         
-        // Refresh modal
+        // Refresh modal if it's open
         if (selectedDate) {
             openDateModal(selectedDate);
         }
@@ -408,8 +362,8 @@ function cancelUserBooking(bookingId, userEmail) {
         alert('✅ Booking cancelled successfully!\n\nThe user can now make a new booking for this date/lake combination.');
         
     } catch (error) {
-        console.error('[Admin] Error cancelling booking:', error);
-        alert('❌ Error cancelling booking. Please try again.');
+        console.error('[Admin] Error cancelling booking via API:', error);
+        alert(error.message || '❌ Error cancelling booking. Please try again.');
     }
 }
 

@@ -567,7 +567,7 @@ function bookLake(lake) {
 }
 
 // Confirm booking
-function confirmBooking() {
+async function confirmBooking() {
     console.log('confirmBooking called');
     console.log('selectedDate:', selectedDate);
     console.log('selectedLake:', selectedLake);
@@ -612,7 +612,7 @@ function confirmBooking() {
     }
     console.log('No booking restriction found');
     
-    // Check if the selected lake is still available
+    // Check if the selected lake is still available (using API data)
     const dateBookings = bookings.filter(booking => 
         booking.date === dateString && booking.status !== 'cancelled'
     );
@@ -652,7 +652,7 @@ function confirmBooking() {
         
         // Update lake availability display to reflect the new booking
         if (selectedDate) {
-            await updateLakeAvailability(dateString);
+            updateLakeAvailability(dateString);
         }
         
         // Reset form
@@ -916,29 +916,41 @@ async function loadActiveBooking() {
 }
 
 // Cancel active booking
-function cancelActiveBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking? This will lift your booking restriction and allow you to make a new booking immediately.')) {
-        const booking = bookings.find(b => b.id === bookingId);
-        if (booking) {
-            booking.status = 'cancelled';
-            saveBookingsToStorage();
-            
-            // Reset the booking restriction when cancelling
-            if (currentUser) {
-                localStorage.removeItem(`lastBookingTime_${currentUser.email}`);
-            }
-            
-            // Update restrictions and active booking display
-            checkBookingRestriction();
-            loadActiveBooking();
-            
-            // Update lake availability display to reflect the cancelled booking
-            if (selectedDate) {
-                updateLakeAvailability(formatDate(selectedDate));
-            }
-            
-            alert('Booking cancelled successfully. You can now make a new booking.');
+async function cancelActiveBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking? This will lift your booking restriction and allow you to make a new booking immediately.')) {
+        return;
+    }
+    
+    try {
+        console.log('Cancelling booking via API:', bookingId);
+        
+        // Call API to cancel booking
+        await BignorAPI.bookings.cancelBooking(bookingId);
+        
+        console.log('Booking cancelled successfully via API');
+        
+        // Reset the booking restriction when cancelling
+        if (currentUser) {
+            localStorage.removeItem(`lastBookingTime_${currentUser.email}`);
         }
+        
+        // Reload bookings from API to get updated list
+        await loadBookingsFromStorage();
+        
+        // Update restrictions and active booking display
+        checkBookingRestriction();
+        await loadActiveBooking();
+        
+        // Update lake availability display to reflect the cancelled booking
+        if (selectedDate) {
+            updateLakeAvailability(formatDate(selectedDate));
+        }
+        
+        alert('Booking cancelled successfully. You can now make a new booking.');
+        
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert(error.message || 'There was an error cancelling your booking. Please try again.');
     }
 }
 
@@ -947,22 +959,35 @@ function cancelActiveBooking(bookingId) {
 
 
 // Cancel booking
-function cancelBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        const booking = bookings.find(b => b.id === bookingId);
-        if (booking) {
-            booking.status = 'cancelled';
-            saveBookingsToStorage();
-            
-            // Reset the booking restriction when cancelling
-            if (currentUser) {
-                localStorage.removeItem(`lastBookingTime_${currentUser.email}`);
-            }
-            
-            // Update restrictions without resetting selections
-            checkBookingRestriction();
-            alert('Booking cancelled successfully. You can now make a new booking.');
+async function cancelBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+        return;
+    }
+    
+    try {
+        console.log('Cancelling booking via API:', bookingId);
+        
+        // Call API to cancel booking
+        await BignorAPI.bookings.cancelBooking(bookingId);
+        
+        console.log('Booking cancelled successfully via API');
+        
+        // Reset the booking restriction when cancelling
+        if (currentUser) {
+            localStorage.removeItem(`lastBookingTime_${currentUser.email}`);
         }
+        
+        // Reload bookings from API to get updated list
+        await loadBookingsFromStorage();
+        
+        // Update restrictions without resetting selections
+        checkBookingRestriction();
+        
+        alert('Booking cancelled successfully. You can now make a new booking.');
+        
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert(error.message || 'There was an error cancelling your booking. Please try again.');
     }
 }
 

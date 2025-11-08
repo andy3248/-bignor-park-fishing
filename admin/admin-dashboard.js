@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(loadDashboardData, 30000);
 });
 
-// Load dashboard statistics
-function loadDashboardData() {
+// Load dashboard statistics from API
+async function loadDashboardData() {
     // Check if elements exist (for old dashboard)
     if (!document.getElementById('todayBookingsCount')) {
         console.log('[Admin] Dashboard elements not found - using calendar view');
@@ -23,47 +23,52 @@ function loadDashboardData() {
     }
     
     try {
-        // Get bookings
-        const bookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
+        console.log('[Admin] Loading dashboard data from API...');
+        
+        // Get dashboard stats from API
+        const response = await BignorAPI.admin.getDashboard();
+        const stats = response.stats;
+        
+        // Update today's bookings count
+        const todayBookings = stats.activeBookings + stats.upcomingBookings;
+        document.getElementById('todayBookingsCount').textContent = todayBookings;
+
+        // Get all bookings to count by lake
+        const bookingsResponse = await BignorAPI.admin.getAllBookings({});
         const today = new Date().toISOString().split('T')[0];
-
-        // Calculate today's bookings
-        const todayBookings = bookings.filter(b => {
-            if (b.status === 'cancelled') return false;
-
-            const bookingStart = new Date(b.date + 'T00:00:00');
-            const bookingEnd = new Date(bookingStart.getTime() + (24 * 60 * 60 * 1000));
-            const now = new Date();
-
-            // Check if booking is active today
-            return b.date === today || (now >= bookingStart && now < bookingEnd);
-        });
-
-        document.getElementById('todayBookingsCount').textContent = todayBookings.length;
-
+        
+        const todayBookingsList = bookingsResponse.bookings.filter(b => 
+            b.bookingDate === today && b.status !== 'cancelled'
+        );
+        
         // Count by lake
-        const mainLakeBookings = todayBookings.filter(b =>
-            b.lake === 'bignor' || b.lake === 'bignor-main' || b.lakeName === 'Bignor Main Lake'
+        const mainLakeBookings = todayBookingsList.filter(b =>
+            b.lakeName && b.lakeName.toLowerCase().includes('bignor')
         ).length;
 
-        const woodPoolBookings = todayBookings.filter(b =>
-            b.lake === 'wood' || b.lake === 'wood-pool' || b.lakeName === 'Wood Pool'
+        const woodPoolBookings = todayBookingsList.filter(b =>
+            b.lakeName && (b.lakeName.toLowerCase().includes('wood') || b.lakeName.toLowerCase().includes('pool'))
         ).length;
 
         document.getElementById('mainLakeCount').textContent = mainLakeBookings;
         document.getElementById('woodPoolCount').textContent = woodPoolBookings;
 
-        // Count members
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        document.getElementById('totalMembersCount').textContent = users.length;
+        // Display total members
+        document.getElementById('totalMembersCount').textContent = stats.totalUsers || 0;
+        
+        console.log('[Admin] Dashboard data loaded successfully');
 
     } catch (error) {
-        console.error('[Admin] Error loading dashboard data:', error);
+        console.error('[Admin] Error loading dashboard data from API:', error);
+        // Show error in UI elements
+        if (document.getElementById('todayBookingsCount')) {
+            document.getElementById('todayBookingsCount').textContent = 'Error';
+        }
     }
 }
 
-// Load recent activity
-function loadRecentActivity() {
+// Load recent activity from API
+async function loadRecentActivity() {
     const tableBody = document.getElementById('recentActivityTable');
     if (!tableBody) {
         console.log('[Admin] Recent activity table not found - using calendar view');
@@ -71,7 +76,11 @@ function loadRecentActivity() {
     }
     
     try {
-        const bookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
+        console.log('[Admin] Loading recent activity from API...');
+        
+        // Get recent bookings from API
+        const response = await BignorAPI.admin.getAllBookings({});
+        const bookings = response.bookings || [];
 
         // Sort by creation time (most recent first)
         const recentBookings = bookings
@@ -105,9 +114,19 @@ function loadRecentActivity() {
                 </tr>
             `;
         }).join('');
+        
+        console.log('[Admin] Recent activity loaded successfully');
 
     } catch (error) {
-        console.error('[Admin] Error loading recent activity:', error);
+        console.error('[Admin] Error loading recent activity from API:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #e74c3c;">
+                    <strong>Error loading recent activity</strong><br>
+                    ${error.message || 'Unable to connect to server'}
+                </td>
+            </tr>
+        `;
     }
 }
 
@@ -136,7 +155,8 @@ function formatTimestamp(date) {
 
 // Get action text
 function getActionText(booking) {
-    const bookingDate = new Date(booking.date + 'T00:00:00');
+    const dateField = booking.bookingDate || booking.date;
+    const bookingDate = new Date(dateField + 'T00:00:00');
     const dateStr = bookingDate.toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
@@ -168,38 +188,38 @@ function getStatusBadge(status) {
 // ADMIN BOOKING MANAGEMENT FUNCTIONS
 // ============================================
 
-// Render admin bookings table
-function renderAdminBookingsTable() {
+// Render admin bookings table from API
+async function renderAdminBookingsTable() {
     const container = document.getElementById('adminBookingsTableContainer');
     if (!container) {
         console.error('[Admin] Bookings container not found');
         return;
     }
     
-    // Get all bookings
-    const allBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
-    
-    // Filter out expired and cancelled bookings
-    const now = Date.now();
-    const activeBookings = allBookings.filter(booking => {
-        if (booking.status === 'cancelled') return false;
+    try {
+        console.log('[Admin] Loading bookings for table from API...');
         
-        if (booking.endUtc) {
-            return booking.endUtc > now;
-        }
+        // Get all bookings from API
+        const response = await BignorAPI.admin.getAllBookings({});
+        const allBookings = response.bookings || [];
         
-        // For legacy bookings without endUtc, keep them for 24 hours
-        const bookingDate = new Date(booking.date);
-        const bookingEnd = bookingDate.getTime() + (24 * 60 * 60 * 1000);
-        return bookingEnd > now;
-    });
-    
-    // Sort by date (upcoming first)
-    activeBookings.sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA - dateB;
-    });
+        // Filter out expired and cancelled bookings
+        const now = Date.now();
+        const activeBookings = allBookings.filter(booking => {
+            if (booking.status === 'cancelled') return false;
+            
+            // Check if booking date is in the future or today
+            const bookingDate = new Date(booking.bookingDate + 'T00:00:00');
+            const bookingEnd = bookingDate.getTime() + (24 * 60 * 60 * 1000);
+            return bookingEnd > now;
+        });
+        
+        // Sort by date (upcoming first)
+        activeBookings.sort((a, b) => {
+            const dateA = new Date(a.bookingDate);
+            const dateB = new Date(b.bookingDate);
+            return dateA - dateB;
+        });
     
     if (activeBookings.length === 0) {
         container.innerHTML = `
@@ -239,9 +259,9 @@ function renderAdminBookingsTable() {
     
     // Add rows for each booking
     activeBookings.forEach(booking => {
-        const bookingDate = new Date(booking.date);
-        const startUtc = booking.startUtc || bookingDate.getTime();
-        const endUtc = booking.endUtc || (startUtc + (24 * 60 * 60 * 1000));
+        const bookingDate = new Date(booking.bookingDate + 'T00:00:00');
+        const startUtc = new Date(booking.startTime || booking.bookingDate + 'T00:00:00').getTime();
+        const endUtc = new Date(booking.endTime || booking.bookingDate + 'T23:59:59').getTime();
         
         // Determine status
         let status = 'upcoming';
@@ -261,7 +281,7 @@ function renderAdminBookingsTable() {
             statusIcon = '📅';
         }
         
-        const lakeName = booking.lakeName || getLakeNameAdmin(booking.lake);
+        const lakeName = booking.lakeName || 'Unknown Lake';
         const userName = booking.userName || 'Unknown User';
         const notes = booking.notes || '-';
         const startTime = new Date(startUtc).toLocaleTimeString('en-GB', {
@@ -270,16 +290,18 @@ function renderAdminBookingsTable() {
             timeZone: 'UTC'
         });
         
+        const bookingId = booking.bookingId || booking.id;
+        
         tableHTML += `
             <tr>
-                <td><strong>${booking.date}</strong></td>
+                <td><strong>${booking.bookingDate}</strong></td>
                 <td>${lakeName}</td>
                 <td>${userName}</td>
                 <td><span class="admin-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
                 <td>${startTime} UTC</td>
                 <td>${notes}</td>
                 <td style="text-align: center;">
-                    <button class="admin-btn-danger-small" onclick="adminCancelBooking('${booking.id}', '${userName}')">
+                    <button class="admin-btn-danger-small" onclick="adminCancelBooking('${bookingId}', '${userName}')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="15" y1="9" x2="9" y2="15"></line>
@@ -298,6 +320,17 @@ function renderAdminBookingsTable() {
     `;
     
     container.innerHTML = tableHTML;
+    console.log('[Admin] Bookings table rendered successfully');
+    
+    } catch (error) {
+        console.error('[Admin] Error rendering bookings table:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                <strong>Error loading bookings</strong><br>
+                ${error.message || 'Unable to connect to server'}
+            </div>
+        `;
+    }
 }
 
 function getLakeNameAdmin(lakeSlug) {
@@ -447,50 +480,31 @@ function adminCreateBooking() {
     alert(`✅ Booking created successfully for ${user.fullName || userEmail}!\n\nLake: ${lakeName}\nDate: ${date}`);
 }
 
-// Admin cancel booking
-function adminCancelBooking(bookingId, userName) {
+// Admin cancel booking via API
+async function adminCancelBooking(bookingId, userName) {
     if (!confirm(`Are you sure you want to cancel this booking for ${userName}?`)) {
         return;
     }
     
-    // Get all bookings
-    const allBookings = JSON.parse(localStorage.getItem('bignor_park_bookings') || '[]');
-    const bookingIndex = allBookings.findIndex(b => b.id === bookingId);
-    
-    if (bookingIndex === -1) {
-        alert('Booking not found.');
-        return;
+    try {
+        console.log('[Admin] Cancelling booking via API:', bookingId);
+        
+        // Call API to cancel booking
+        await BignorAPI.admin.cancelBooking(bookingId);
+        
+        console.log('[Admin] Booking cancelled successfully via API');
+        
+        // Refresh tables
+        await renderAdminBookingsTable();
+        await loadDashboardData();
+        await loadRecentActivity();
+        
+        alert(`✅ Booking cancelled successfully for ${userName}.`);
+        
+    } catch (error) {
+        console.error('[Admin] Error cancelling booking via API:', error);
+        alert(error.message || '❌ Error cancelling booking. Please try again.');
     }
-    
-    const booking = allBookings[bookingIndex];
-    
-    // Mark as cancelled
-    booking.status = 'cancelled';
-    booking.cancelledAt = new Date().toISOString();
-    booking.cancelledBy = 'admin';
-    
-    // Save to storage
-    localStorage.setItem('bignor_park_bookings', JSON.stringify(allBookings));
-    
-    // Also remove from UTC system if it's the active booking
-    if (window.ActiveBookingSystem && booking.userId) {
-        try {
-            const activeBooking = window.ActiveBookingSystem.getActiveBooking(booking.userId);
-            if (activeBooking && (activeBooking.id === bookingId || activeBooking.id.includes(bookingId))) {
-                window.ActiveBookingSystem.clearActiveBooking(booking.userId);
-                console.log('[Admin] Cleared booking from UTC system');
-            }
-        } catch (error) {
-            console.error('[Admin] Error clearing UTC system:', error);
-        }
-    }
-    
-    // Refresh tables
-    renderAdminBookingsTable();
-    loadDashboardData();
-    loadRecentActivity();
-    
-    alert(`✅ Booking cancelled successfully for ${userName}.`);
 }
 
 // Auto-refresh admin bookings table every 60 seconds
