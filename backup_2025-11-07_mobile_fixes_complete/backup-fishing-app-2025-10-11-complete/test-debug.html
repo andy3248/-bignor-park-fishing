@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Booking System</title>
+</head>
+<body>
+    <h1>Booking System Debug</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        function displayDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            
+            // Check currentUser
+            const currentUser = localStorage.getItem('currentUser');
+            const currentUserParsed = currentUser ? JSON.parse(currentUser) : null;
+            
+            // Check bookings
+            const bookings = localStorage.getItem('bookings');
+            const bookingsParsed = bookings ? JSON.parse(bookings) : [];
+            
+            // Check users
+            const users = localStorage.getItem('users');
+            const usersParsed = users ? JSON.parse(users) : [];
+            
+            let debugHTML = `
+                <h2>Current User</h2>
+                <pre>${JSON.stringify(currentUserParsed, null, 2)}</pre>
+                
+                <h2>All Bookings</h2>
+                <pre>${JSON.stringify(bookingsParsed, null, 2)}</pre>
+                
+                <h2>All Users</h2>
+                <pre>${JSON.stringify(usersParsed, null, 2)}</pre>
+            `;
+            
+            if (currentUserParsed) {
+                const userBookings = bookingsParsed.filter(booking => booking.userId === currentUserParsed.email);
+                const activeBooking = userBookings.find(booking => booking.status === 'upcoming');
+                
+                debugHTML += `
+                    <h2>User's Bookings</h2>
+                    <pre>${JSON.stringify(userBookings, null, 2)}</pre>
+                    
+                    <h2>Active Booking</h2>
+                    <pre>${JSON.stringify(activeBooking, null, 2)}</pre>
+                `;
+            }
+            
+            debugDiv.innerHTML = debugHTML;
+        }
+        
+        // Display debug info on load
+        displayDebugInfo();
+        
+        // Add refresh button
+        const refreshBtn = document.createElement('button');
+        refreshBtn.textContent = 'Refresh Debug Info';
+        refreshBtn.onclick = displayDebugInfo;
+        document.body.appendChild(refreshBtn);
+    </script>
+</body>
+</html> 

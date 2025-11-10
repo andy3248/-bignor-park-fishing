@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        h2 { color: #333; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background: #48d1cc; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #20b2aa; }
+    </style>
+</head>
+<body>
+    <h1>🎣 Booking System Diagnostic Test</h1>
+    
+    <div id="results"></div>
+    
+    <div class="test-section">
+        <h2>Manual Tests</h2>
+        <button onclick="testCalendarClick()">Test Calendar Day Click</button>
+        <button onclick="testLakeBooking()">Test Lake Booking</button>
+        <button onclick="testLocalStorage()">Test LocalStorage</button>
+        <button onclick="clearAllData()">Clear All Data</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <pre id="console"></pre>
+    </div>
+
+    <script type="module">
+        const results = document.getElementById('results');
+        const consoleOutput = document.getElementById('console');
+        
+        // Capture console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function logToPage(type, ...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.textContent += `[${type}] ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = (...args) => { originalLog(...args); logToPage('LOG', ...args); };
+        console.error = (...args) => { originalError(...args); logToPage('ERROR', ...args); };
+        console.warn = (...args) => { originalWarn(...args); logToPage('WARN', ...args); };
+        
+        // Test 1: Check if modules can be imported
+        async function testModuleImports() {
+            const div = document.createElement('div');
+            div.className = 'test-section';
+            div.innerHTML = '<h2>Test 1: Module Imports</h2>';
+            
+            try {
+                const { LAKES, getLakeName } = await import('./lakes.js');
+                div.innerHTML += '<p class="success">✅ lakes.js imported successfully</p>';
+                div.innerHTML += `<pre>${JSON.stringify(LAKES, null, 2)}</pre>`;
+                
+                const BookingsContext = await import('./src/context/bookingsContext.js');
+                div.innerHTML += '<p class="success">✅ bookingsContext.js imported successfully</p>';
+                
+                div.className += ' success';
+            } catch (error) {
+                div.innerHTML += `<p class="error">❌ Import failed: ${error.message}</p>`;
+                div.innerHTML += `<pre>${error.stack}</pre>`;
+                div.className += ' error';
+            }
+            
+            results.appendChild(div);
+        }
+        
+        // Test 2: Check localStorage
+        function testLocalStorage() {
+            const div = document.createElement('div');
+            div.className = 'test-section';
+            div.innerHTML = '<h2>Test 2: LocalStorage</h2>';
+            
+            try {
+                const currentUser = localStorage.getItem('currentUser');
+                const bookings = localStorage.getItem('bignor_park_bookings');
+                const users = localStorage.getItem('users');
+                
+                div.innerHTML += '<h3>Current User:</h3>';
+                div.innerHTML += `<pre>${currentUser || 'Not logged in'}</pre>`;
+                
+                div.innerHTML += '<h3>Bookings:</h3>';
+                div.innerHTML += `<pre>${bookings || 'No bookings'}</pre>`;
+                
+                div.innerHTML += '<h3>Registered Users:</h3>';
+                div.innerHTML += `<pre>${users || 'No users'}</pre>`;
+                
+                div.className += ' success';
+            } catch (error) {
+                div.innerHTML += `<p class="error">❌ LocalStorage test failed: ${error.message}</p>`;
+                div.className += ' error';
+            }
+            
+            results.appendChild(div);
+            return false;
+        }
+        
+        // Test 3: Check if booking.js functions are accessible
+        function testBookingFunctions() {
+            const div = document.createElement('div');
+            div.className = 'test-section';
+            div.innerHTML = '<h2>Test 3: Booking Functions</h2>';
+            
+            const functions = [
+                'confirmBooking',
+                'resetBooking',
+                'cancelActiveBooking',
+                'testBookingSystem',
+                'switchToBookingTab'
+            ];
+            
+            functions.forEach(fn => {
+                if (typeof window[fn] === 'function') {
+                    div.innerHTML += `<p class="success">✅ ${fn} is available</p>`;
+                } else {
+                    div.innerHTML += `<p class="error">❌ ${fn} is NOT available</p>`;
+                }
+            });
+            
+            results.appendChild(div);
+        }
+        
+        // Test 4: Check DOM elements
+        function testDOMElements() {
+            const div = document.createElement('div');
+            div.className = 'test-section';
+            div.innerHTML = '<h2>Test 4: DOM Elements (on booking.html)</h2>';
+            
+            const elements = [
+                'calendarDays',
+                'lakeAvailability',
+                'bookingForm',
+                'bookBignorBtn',
+                'bookWoodBtn',
+                'confirmBookingBtn'
+            ];
+            
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    div.innerHTML += `<p class="success">✅ #${id} exists</p>`;
+                } else {
+                    div.innerHTML += `<p class="error">❌ #${id} NOT found</p>`;
+                }
+            });
+            
+            div.innerHTML += '<p><em>Note: Some elements may only exist on booking.html</em></p>';
+            results.appendChild(div);
+        }
+        
+        // Run tests
+        async function runAllTests() {
+            results.innerHTML = '<h2>Running Tests...</h2>';
+            await testModuleImports();
+            testLocalStorage();
+            
+            // Wait a bit for modules to load
+            setTimeout(() => {
+                testBookingFunctions();
+                testDOMElements();
+            }, 1000);
+        }
+        
+        // Manual test functions
+        window.testCalendarClick = function() {
+            console.log('Testing calendar click...');
+            const today = new Date();
+            console.log('Today:', today);
+            console.log('Calling window.selectDate if available...');
+            if (typeof window.selectDate === 'function') {
+                window.selectDate(today);
+            } else {
+                console.error('window.selectDate is not a function');
+            }
+        };
+        
+        window.testLakeBooking = function() {
+            console.log('Testing lake booking...');
+            if (typeof window.bookLake === 'function') {
+                window.bookLake('bignor');
+            } else {
+                console.error('window.bookLake is not a function');
+            }
+        };
+        
+        window.testLocalStorage = testLocalStorage;
+        
+        window.clearAllData = function() {
+            if (confirm('Clear all booking data? This cannot be undone.')) {
+                localStorage.removeItem('bignor_park_bookings');
+                console.log('Cleared all booking data');
+                location.reload();
+            }
+        };
+        
+        // Auto-run tests on load
+        runAllTests();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bignor Park - Premium Carp Fishery</title>
+    <link rel="stylesheet" href="index-clean.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="header-wrapper">
+            <div class="logo-area">
+                <img src="carp-logo.png" alt="Bignor Park" class="logo-img">
+                <div class="logo-title">
+                    <h1>Bignor Park</h1>
+                    <span>CARP FISHERY</span>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <a href="#home">Home</a>
+                <a href="#lakes">Lakes</a>
+                <a href="#gallery">Gallery</a>
+                <a href="dashboard.html">Dashboard</a>
+                <span id="userName" style="color: #2c3e50; font-weight: 500;">Member</span>
+                <button onclick="logout()" class="login-button">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section id="home" class="hero-banner">
+        <div class="hero-slider">
+            <img src="HCRU2383.JPG" alt="Bignor Main Lake" class="slide active">
+            <img src="wood-pool-1.jpg" alt="Wood Pool" class="slide">
+            <img src="WhatsApp Image 2025-06-14 at 09.54.49_24b1de56.jpg" alt="Catch" class="slide">
+            <img src="WhatsApp Image 2025-06-14 at 09.54.33_09f05893.jpg" alt="Lake View" class="slide">
+        </div>
+        <div class="hero-overlay">
+            <div class="hero-message">
+                <div class="location-tag">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Premium Carp Fishery</span>
+                </div>
+                <h1 class="hero-title">
+                    The UK's Premier<br>
+                    <span class="highlight">Carp Fishing Venue</span><br>
+                    of its kind.
+                </h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Four Card Section -->
+    <section class="four-cards">
+        <div class="cards-wrapper">
+            <div class="card yellow-card">
+                <h3>Book a Session</h3>
+                <p>Reserve your fishing spot on our pristine lakes. Two stunning venues offering exceptional experiences.</p>
+                <ul>
+                    <li>Two exclusive lakes</li>
+                    <li>Easy online booking</li>
+                    <li>Flexible session times</li>
+                </ul>
+                <button onclick="window.location.href='booking.html'">Book Now</button>
+            </div>
+
+            <div class="card yellow-card">
+                <h3>Available Lakes</h3>
+                <p>Explore our two beautiful fishing locations, each with its own character and trophy carp.</p>
+                <ul>
+                    <li><strong>Bignor Main:</strong> 3 spots</li>
+                    <li><strong>Wood Pool:</strong> 2 spots</li>
+                    <li>Quality fish in both lakes</li>
+                </ul>
+                <button onclick="showModal('lakesModal')">View Lakes</button>
+            </div>
+
+            <div class="card yellow-card">
+                <h3>Rules & Regulations</h3>
+                <p>Important guidelines for safe and responsible fishing at Bignor Park Estate.</p>
+                <ul>
+                    <li>Comprehensive rules</li>
+                    <li>Fish care guidelines</li>
+                    <li>Estate regulations</li>
+                </ul>
+                <button onclick="showModal('rulesModal')">Read Rules</button>
+            </div>
+
+            <div class="card yellow-card">
+                <h3>Contact Us</h3>
+                <p>Get in touch with our management team and bailiffs for bookings or inquiries.</p>
+                <ul>
+                    <li>Management available</li>
+                    <li>On-site bailiff support</li>
+                    <li>Quick responses</li>
+                </ul>
+                <button onclick="showModal('contactModal')">Contact Info</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lake Feature 1 -->
+    <section id="lakes" class="lake-feature">
+        <div class="feature-wrapper">
+            <div class="feature-image">
+                <img src="HCRU2383.JPG" alt="Bignor Main Lake">
+            </div>
+            <div class="feature-text">
+                <h2>Bignor Main Lake</h2>
+                <p>Our flagship venue offers spacious, pristine waters home to some truly magnificent carp. With a maximum capacity of just 3 anglers, you'll enjoy peaceful, uncrowded sessions.</p>
+                <p>The lake features commons, mirrors, and leather carp ranging from doubles up to specimens over 40lbs.</p>
+                <div class="stats">
+                    <div class="stat"><strong>3</strong><span>Spots</span></div>
+                    <div class="stat"><strong>40lb+</strong><span>Trophy Fish</span></div>
+                    <div class="stat"><strong>Year-Round</strong><span>Access</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lake Feature 2 -->
+    <section class="lake-feature alt">
+        <div class="feature-wrapper reverse">
+            <div class="feature-text">
+                <h2>Wood Pool</h2>
+                <p>An intimate woodland setting perfect for those seeking a more secluded fishing experience. Limited to just 2 anglers, Wood Pool offers the ultimate in peaceful, private angling.</p>
+                <p>Surrounded by natural beauty and stocked with quality carp, ideal for both serious anglers and those wanting to enjoy nature.</p>
+                <div class="stats">
+                    <div class="stat"><strong>2</strong><span>Spots</span></div>
+                    <div class="stat"><strong>Woodland</strong><span>Setting</span></div>
+                    <div class="stat"><strong>Intimate</strong><span>Experience</span></div>
+                </div>
+            </div>
+            <div class="feature-image">
+                <img src="WhatsApp Image 2025-06-14 at 09.56.15_83f78450.jpg" alt="Wood Pool">
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="gallery">
+        <div class="gallery-header">
+            <h2>Gallery</h2>
+            <p>Our members consistently land stunning fish from both venues</p>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="BSSM7768.JPG" alt="Common Carp">
+                <div class="item-info">
+                    <h4>Stunning Common</h4>
+                    <p>Perfect scales and coloration showing our water quality.</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="MQSP5029.JPG" alt="Mirror Carp">
+                <div class="item-info">
+                    <h4>Trophy Mirror</h4>
+                    <p>Distinctive scaling patterns from our resident fish.</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="NZML5529.JPG" alt="Large Carp">
+                <div class="item-info">
+                    <h4>Personal Best</h4>
+                    <p>Our fish continue to grow and thrive year after year.</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="WhatsApp Image 2025-06-14 at 09.54.33_09f05893.jpg" alt="Happy Angler">
+                <div class="item-info">
+                    <h4>Dream Catch</h4>
+                    <p>Unforgettable moments at our exclusive venues.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-wrapper">
+            <img src="carp-logo.png" alt="Logo" class="footer-logo">
+            <h2>Bignor Park Carp Fishery</h2>
+            <div class="footer-grid">
+                <div class="footer-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <div>
+                        <strong>Bignor Park Estate</strong>
+                        <span>Pulborough, West Sussex</span>
+                    </div>
+                </div>
+                <div class="footer-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <div>
+                        <strong>Michael: <a href="tel:07749135709">07749 135709</a></strong>
+                        <span>Ross: <a href="tel:07979521146">07979 521146</a></span>
+                    </div>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 Bignor Park Carp Fishery</p>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div id="lakesModal" class="modal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2>Available Lakes</h2>
+            <div class="modal-lakes">
+                <div class="modal-lake">
+                    <img src="HCRU2383.JPG" alt="Bignor Main Lake">
+                    <h3>Bignor Main Lake</h3>
+                    <p>Maximum 3 anglers per session. Spacious waters with large carp.</p>
+                    <button onclick="window.location.href='booking.html?lake=bignor-main'">Book This Lake</button>
+                </div>
+                <div class="modal-lake">
+                    <img src="WhatsApp Image 2025-06-14 at 09.56.15_83f78450.jpg" alt="Wood Pool">
+                    <h3>Wood Pool</h3>
+                    <p>Maximum 2 anglers per session. Intimate woodland setting.</p>
+                    <button onclick="window.location.href='booking.html?lake=wood-pool'">Book This Lake</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rulesModal" class="modal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2>Fishing Rules & Regulations</h2>
+            <div class="rules-list">
+                <div class="rule-group">
+                    <h3>Estate & Vehicle Rules</h3>
+                    <ul>
+                        <li>Display membership cards on estate</li>
+                        <li>Maximum 20mph speed limit</li>
+                        <li>Park by lake entrance only</li>
+                    </ul>
+                </div>
+                <div class="rule-group">
+                    <h3>Equipment</h3>
+                    <ul>
+                        <li><strong>3 rods maximum</strong></li>
+                        <li><strong>3 anglers maximum</strong></li>
+                        <li><strong>Micro barbed hooks only</strong></li>
+                        <li><strong>Minimum 15lb mainline</strong></li>
+                    </ul>
+                </div>
+                <div class="rule-group highlight">
+                    <h3>Fish Care</h3>
+                    <ul>
+                        <li>Dip mats in BioVx bin before fishing</li>
+                        <li>Treat hook holds with Propolis</li>
+                        <li><strong>Report all captures to Michael</strong></li>
+                    </ul>
+                </div>
+                <div class="warning-box">
+                    <h3>⚠️ Important</h3>
+                    <p>Membership at risk if rules are broken</p>
+                    <p>Contact: Michael <a href="tel:07749135709">07749 135709</a> | Ross <a href="tel:07979521146">07979 521146</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contactModal" class="modal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2>Contact Information</h2>
+            <div class="contact-sections">
+                <div class="contact-section">
+                    <h3>Location</h3>
+                    <p><strong>Bignor Park Estate</strong></p>
+                    <p>Pulborough, West Sussex</p>
+                </div>
+                <div class="contact-section">
+                    <h3>Management</h3>
+                    <p><strong>Michael Boyle:</strong> <a href="tel:07749135709">07749 135709</a></p>
+                    <p><strong>Ross Grimster:</strong> <a href="tel:07979521146">07979 521146</a></p>
+                </div>
+                <div class="contact-section">
+                    <h3>Bailiffs</h3>
+                    <p><strong>Liam Wadey:</strong> <a href="tel:07713147857">07713 147857</a></p>
+                    <p><strong>Aaron Greenfield:</strong> <a href="tel:07816674172">07816 674172</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="index-clean.js"></script>
+</body>
+</html>

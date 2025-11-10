@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test addBooking Function</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { border-color: #4CAF50; background-color: #f1f8e9; }
+        .error { border-color: #f44336; background-color: #ffebee; }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #ccc;
+        }
+        .test-case.success {
+            background-color: #f1f8e9;
+            border-left-color: #4CAF50;
+        }
+        .test-case.error {
+            background-color: #ffebee;
+            border-left-color: #f44336;
+        }
+        #activeBookingContent {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test addBooking Function</h1>
+        <p>This page tests the integrated addBooking function with the UTC-based booking system.</p>
+
+        <!-- Test User Setup -->
+        <div class="test-section">
+            <h3>1. Setup Test User</h3>
+            <button onclick="setupTestUser()">Setup Test User</button>
+            <div id="userStatus"></div>
+        </div>
+
+        <!-- Test addBooking Function -->
+        <div class="test-section">
+            <h3>2. Test addBooking Function</h3>
+            <button onclick="testAddBooking()">Test addBooking (Bignor Main)</button>
+            <button onclick="testAddBookingWood()">Test addBooking (Wood Pool)</button>
+            <button onclick="testAddBookingWithNotes()">Test addBooking (With Notes)</button>
+            <div id="bookingResult"></div>
+        </div>
+
+        <!-- Display Active Booking -->
+        <div class="test-section">
+            <h3>3. Active Booking Display</h3>
+            <button onclick="testLoadActiveBooking()">Test loadActiveBooking()</button>
+            <button onclick="refreshActiveBooking()">Refresh Display</button>
+            <button onclick="testCancelBooking()">Test Cancel Booking</button>
+            <button onclick="testWatcher()">Test Watcher (Manual)</button>
+            <button onclick="stopWatcher()">Stop Watcher</button>
+            <div id="active-booking-info">
+                <p>No active booking</p>
+            </div>
+        </div>
+
+        <!-- Test Error Cases -->
+        <div class="test-section">
+            <h3>4. Test Error Cases</h3>
+            <button onclick="testDuplicateBooking()">Test Duplicate Booking</button>
+            <button onclick="testInvalidLake()">Test Invalid Lake</button>
+            <button onclick="testNoUser()">Test No User</button>
+            <div id="errorResult"></div>
+        </div>
+
+        <!-- Test Utility Functions -->
+        <div class="test-section">
+            <h3>5. Test Utility Functions</h3>
+            <button onclick="testEscapeHtml()">Test escapeHtml()</button>
+            <div id="utilityResult"></div>
+        </div>
+
+        <!-- Clear Data -->
+        <div class="test-section">
+            <h3>5. Clear Test Data</h3>
+            <button onclick="clearTestData()" style="background-color: #f44336;">Clear All Test Data</button>
+        </div>
+    </div>
+
+    <!-- Include the booking system scripts -->
+    <script src="activeBooking.js"></script>
+    <script src="booking-integration-utc.js"></script>
+
+    <script>
+        // Test functions
+        function setupTestUser() {
+            const testUser = {
+                email: 'test@example.com',
+                fullName: 'Test User',
+                name: 'Test User'
+            };
+            
+            localStorage.setItem('currentUser', JSON.stringify(testUser));
+            document.getElementById('userStatus').innerHTML = 
+                '<div class="result success">✅ Test user setup: ' + testUser.email + '</div>';
+        }
+
+        function testAddBooking() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const bookingDetails = {
+                lake: 'bignor-main',
+                date: dateStr,
+                session: 'full-day',
+                durationHours: 24,
+                notes: 'Test booking for Bignor Main Lake'
+            };
+
+            const result = addBooking(bookingDetails);
+            
+            const resultDiv = document.getElementById('bookingResult');
+            if (result.success) {
+                resultDiv.innerHTML = '<div class="result success">✅ ' + result.message + '</div>';
+                // Refresh the active booking display
+                refreshActiveBooking();
+            } else {
+                resultDiv.innerHTML = '<div class="result error">❌ ' + result.error + '</div>';
+            }
+        }
+
+        function testAddBookingWood() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 2);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const bookingDetails = {
+                lake: 'wood-pool',
+                date: dateStr,
+                session: 'full-day',
+                durationHours: 24,
+                notes: 'Test booking for Wood Pool'
+            };
+
+            const result = addBooking(bookingDetails);
+            
+            const resultDiv = document.getElementById('bookingResult');
+            if (result.success) {
+                resultDiv.innerHTML = '<div class="result success">✅ ' + result.message + '</div>';
+                refreshActiveBooking();
+            } else {
+                resultDiv.innerHTML = '<div class="result error">❌ ' + result.error + '</div>';
+            }
+        }
+
+        function testAddBookingWithNotes() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 3);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const bookingDetails = {
+                lake: 'bignor-main',
+                date: dateStr,
+                session: 'full-day',
+                durationHours: 24,
+                notes: 'Special test booking with detailed notes about fishing preferences'
+            };
+
+            const result = addBooking(bookingDetails);
+            
+            const resultDiv = document.getElementById('bookingResult');
+            if (result.success) {
+                resultDiv.innerHTML = '<div class="result success">✅ ' + result.message + '</div>';
+                refreshActiveBooking();
+            } else {
+                resultDiv.innerHTML = '<div class="result error">❌ ' + result.error + '</div>';
+            }
+        }
+
+        function testDuplicateBooking() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const bookingDetails = {
+                lake: 'bignor-main',
+                date: dateStr,
+                session: 'full-day',
+                durationHours: 24
+            };
+
+            const result = addBooking(bookingDetails);
+            
+            const resultDiv = document.getElementById('errorResult');
+            if (result.success) {
+                resultDiv.innerHTML = '<div class="result error">❌ Expected error but got success: ' + result.message + '</div>';
+            } else {
+                resultDiv.innerHTML = '<div class="result success">✅ Correctly caught error: ' + result.error + '</div>';
+            }
+        }
+
+        function testInvalidLake() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const bookingDetails = {
+                lake: 'invalid-lake',
+                date: dateStr,
+                session: 'full-day',
+                durationHours: 24
+            };
+
+            const result = addBooking(bookingDetails);
+            
+            const resultDiv = document.getElementById('errorResult');
+            if (result.success) {
+                resultDiv.innerHTML = '<div class="result error">❌ Expected error but got success: ' + result.message + '</div>';
+            } else {
+                resultDiv.innerHTML = '<div class="result success">✅ Correctly caught error: ' + result.error + '</div>';
+            }
+        }
+
+        function testNoUser() {
+            // Clear user data
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('tempUserData');
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const bookingDetails = {
+                lake: 'bignor-main',
+                date: dateStr,
+                session: 'full-day',
+                durationHours: 24
+            };
+
+            const result = addBooking(bookingDetails);
+            
+            const resultDiv = document.getElementById('errorResult');
+            if (result.success) {
+                resultDiv.innerHTML = '<div class="result error">❌ Expected error but got success: ' + result.message + '</div>';
+            } else {
+                resultDiv.innerHTML = '<div class="result success">✅ Correctly caught error: ' + result.error + '</div>';
+            }
+
+            // Restore test user
+            setupTestUser();
+        }
+
+        function testLoadActiveBooking() {
+            console.log('Testing loadActiveBooking function...');
+            
+            const booking = loadActiveBooking();
+            
+            if (booking) {
+                console.log('✅ loadActiveBooking found booking:', booking);
+                // Also render it using the correct container
+                renderActiveBooking(booking);
+            } else {
+                console.log('❌ loadActiveBooking found no booking');
+                renderActiveBooking(null);
+            }
+        }
+
+        function refreshActiveBooking() {
+            const booking = loadActiveBooking();
+            renderActiveBooking(booking);
+        }
+
+        function testCancelBooking() {
+            console.log('Testing cancel booking functionality...');
+            
+            // First check if there's a booking to cancel
+            const booking = loadActiveBooking();
+            if (!booking) {
+                alert('No active booking to cancel. Create a booking first.');
+                return;
+            }
+            
+            // Show confirmation
+            const confirmed = confirm('Are you sure you want to cancel your active booking?');
+            if (confirmed) {
+                cancelActiveBooking();
+                console.log('✅ Booking cancelled successfully');
+                alert('Booking cancelled successfully!');
+            } else {
+                console.log('❌ Booking cancellation cancelled by user');
+            }
+        }
+
+        let watcherInterval = null;
+
+        function testWatcher() {
+            console.log('Testing watcher functionality...');
+            
+            if (watcherInterval) {
+                alert('Watcher is already running!');
+                return;
+            }
+            
+            // Start a test watcher that updates every 5 seconds (instead of 1 minute for testing)
+            watcherInterval = setInterval(() => {
+                console.log('Watcher tick - refreshing booking display...');
+                const current = loadActiveBooking();
+                renderActiveBooking(current);
+            }, 5000); // 5 seconds for testing
+            
+            alert('Test watcher started! It will refresh every 5 seconds. Check the console for updates.');
+        }
+
+        function stopWatcher() {
+            if (watcherInterval) {
+                clearInterval(watcherInterval);
+                watcherInterval = null;
+                console.log('✅ Test watcher stopped');
+                alert('Test watcher stopped!');
+            } else {
+                alert('No watcher is currently running.');
+            }
+        }
+
+        function testEscapeHtml() {
+            console.log('Testing escapeHtml function...');
+            
+            const testCases = [
+                { input: 'Normal text', expected: 'Normal text' },
+                { input: 'Text with <script>alert("xss")</script>', expected: 'Text with &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' },
+                { input: 'Ampersand & symbol', expected: 'Ampersand &amp; symbol' },
+                { input: 'Quotes "double" and \'single\'', expected: 'Quotes &quot;double&quot; and &#039;single&#039;' },
+                { input: 'HTML tags <div>content</div>', expected: 'HTML tags &lt;div&gt;content&lt;/div&gt;' },
+                { input: '', expected: '' },
+                { input: null, expected: '' },
+                { input: undefined, expected: '' }
+            ];
+            
+            let allPassed = true;
+            let results = '<h4>escapeHtml() Test Results:</h4>';
+            
+            testCases.forEach((testCase, index) => {
+                const result = escapeHtml(testCase.input);
+                const passed = result === testCase.expected;
+                allPassed = allPassed && passed;
+                
+                results += `
+                    <div class="test-case ${passed ? 'success' : 'error'}">
+                        <strong>Test ${index + 1}:</strong> ${passed ? '✅ PASS' : '❌ FAIL'}<br>
+                        <strong>Input:</strong> ${JSON.stringify(testCase.input)}<br>
+                        <strong>Expected:</strong> ${JSON.stringify(testCase.expected)}<br>
+                        <strong>Got:</strong> ${JSON.stringify(result)}<br>
+                    </div>
+                `;
+            });
+            
+            results += `<br><strong>Overall Result:</strong> ${allPassed ? '✅ ALL TESTS PASSED' : '❌ SOME TESTS FAILED'}`;
+            
+            document.getElementById('utilityResult').innerHTML = results;
+            console.log('escapeHtml test completed:', allPassed ? 'ALL PASSED' : 'SOME FAILED');
+        }
+
+        function clearTestData() {
+            // Stop any running watchers
+            if (watcherInterval) {
+                clearInterval(watcherInterval);
+                watcherInterval = null;
+            }
+            
+            // Clear all booking data
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('bp_active_booking_') || key === 'bignor_park_bookings' || key === 'currentUser' || key === 'activeBooking')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Clear display
+            document.getElementById('active-booking-info').innerHTML = '<p>No active booking</p>';
+            document.getElementById('bookingResult').innerHTML = '';
+            document.getElementById('errorResult').innerHTML = '';
+            document.getElementById('userStatus').innerHTML = '';
+            document.getElementById('utilityResult').innerHTML = '';
+            
+            alert('All test data cleared!');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded. Booking system available:', typeof window.BookingIntegration !== 'undefined');
+        });
+    </script>
+</body>
+</html>

@@ -349,3 +349,4 @@ If you're still stuck:
 
 **Your bookings WILL sync across browsers once the backend is running!** 🎉
 
+

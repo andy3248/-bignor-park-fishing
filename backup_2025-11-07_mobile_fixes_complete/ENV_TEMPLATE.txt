@@ -1,0 +1,22 @@
+# Copy this to .env file in your project root
+
+DATABASE_URL=postgresql://username:password@hostname/database?sslmode=require
+
+# Alternative individual parameters
+DB_HOST=your-neon-host.neon.tech
+DB_PORT=5432
+DB_NAME=neondb
+DB_USER=your-username
+DB_PASSWORD=your-password
+
+APP_PORT=8000
+NODE_ENV=development
+JWT_SECRET=generate-a-random-string-here
+
+ADMIN_EMAIL=admin@bignorpark.com
+
+
+
+
+
+

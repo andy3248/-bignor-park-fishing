@@ -1,0 +1,115 @@
+╔══════════════════════════════════════════════════════════╗
+║                                                          ║
+║    HOW TO UPDATE THE WEBSITE - SIMPLE GUIDE             ║
+║    Bignor Park Fishing App                              ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ⚡ FASTEST WAY (Recommended)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    1. Make your changes to the files
+    
+    2. Double-click:  deploy.bat
+    
+    3. Wait 2-5 minutes
+    
+    4. Website is updated! ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  💻 MANUAL WAY (If deploy.bat doesn't work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    1. Open PowerShell in project folder
+       (Right-click folder → "Open in Terminal")
+    
+    2. Type these commands:
+    
+       git add .
+       git commit -m "What I changed"
+       git push origin main
+    
+    3. Wait 2-5 minutes
+    
+    4. Website is updated! ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🔍 HOW TO CHECK IF IT WORKED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    1. Go to: https://dashboard.render.com
+    
+    2. Look for your service (bignor-park-fishing)
+    
+    3. Status should show:
+       "Deploying..." → then "Live" ✅
+    
+    4. Test your website:
+       - Open in browser
+       - Press: Ctrl + Shift + R (clear cache)
+       - Check your changes
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📍 IMPORTANT LINKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    GitHub:
+    https://github.com/andy3248/-bignor-park-fishing
+
+    Render Dashboard:
+    https://dashboard.render.com
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🆘 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    Problem: Changes not showing on website
+    Fix: Clear browser cache (Ctrl + Shift + R)
+
+    Problem: Git command not found
+    Fix: Install Git from https://git-scm.com
+
+    Problem: Can't see changes after 5 minutes
+    Fix: Check Render dashboard for errors
+
+    Problem: deploy.bat doesn't work
+    Fix: Use manual method (see above)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  💾 BEFORE BIG CHANGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    Always create a backup first:
+    
+    mkdir backup_2025-MM-DD_description
+    
+    Then copy files to backup folder
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    Step 1: Edit files
+           ↓
+    Step 2: Run deploy.bat
+           ↓
+    Step 3: Wait 2-5 minutes
+           ↓
+    Step 4: Website updated! ✅
+
+
+For detailed help, see: HOW_TO_DEPLOY.md
+
+
+Last Updated: November 7, 2025
+
+
+
