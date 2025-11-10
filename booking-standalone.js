@@ -504,7 +504,24 @@ async function confirmBooking() {
         
     } catch (error) {
         console.error('[Booking] Error confirming booking via API:', error);
-        alert(error.message || 'There was an error confirming your booking. Please check if the backend server is running and try again.');
+        
+        // Handle specific API errors with better messages
+        if (error.status === 409 || error.message?.includes('already have an active booking')) {
+            // User already has an active booking - show helpful message
+            const errorMsg = error.data?.message || error.message || 'You already have an active booking';
+            alert(errorMsg + '\n\nPlease cancel your existing booking first or wait for it to complete.');
+            
+            // Refresh active booking display so they can see it
+            await loadActiveBooking();
+            
+            // Switch to active booking tab
+            const activeTabBtn = document.querySelector('.tab-btn[data-tab="active"]');
+            if (activeTabBtn) {
+                activeTabBtn.click();
+            }
+        } else {
+            alert(error.message || 'There was an error confirming your booking. Please check if the backend server is running and try again.');
+        }
     }
 }
 
@@ -652,12 +669,19 @@ async function loadActiveBooking() {
     await loadBookingsFromStorage();
     console.log('[Booking] bookings array:', bookings);
 
-    // Find the user's active booking (API returns bookings for current user, but check both userId and user_id)
+    // Use the renderBookingsTable function if available (from backup system)
+    if (typeof renderBookingsTable === 'function') {
+        console.log('[Booking] Using renderBookingsTable to display bookings');
+        renderBookingsTable(currentUser.email);
+        return;
+    }
+
+    // Fallback to simple card display
     const userBookings = bookings.filter(booking => 
         booking.userId === currentUser.email || booking.user_id === currentUser.id
     );
     
-    // Find active booking - check for 'active' or 'upcoming' status (API returns 'active', we map to 'upcoming')
+    // Find active booking - check for 'active' or 'upcoming' status
     const activeBooking = userBookings.find(booking => 
         booking.status === 'active' || booking.status === 'upcoming'
     );
