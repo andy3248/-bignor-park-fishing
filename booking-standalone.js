@@ -27,9 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize booking system
     initializeBookingSystem();
     loadUserData();
-    loadBookingsFromStorage();
-    checkBookingRestriction();
-    loadActiveBooking();
+    loadBookingsFromStorage().then(() => {
+        checkBookingRestriction();
+        loadActiveBooking();
+    });
     initializeCalendar();
     setupEventListeners();
     initializeDateInputs();
@@ -626,7 +627,7 @@ function setLastBookingTime() {
 }
 
 // Load active booking
-function loadActiveBooking() {
+async function loadActiveBooking() {
     const activeBookingContent = document.getElementById('activeBookingContent');
     if (!activeBookingContent) return;
 
@@ -644,7 +645,7 @@ function loadActiveBooking() {
     updateBookingStatuses();
 
     // Reload bookings from storage to get latest data
-    loadBookingsFromStorage();
+    await loadBookingsFromStorage();
 
     const userBookings = bookings.filter(booking => booking.userId === currentUser.email);
 
@@ -726,26 +727,46 @@ function loadActiveBooking() {
 }
 
 // Cancel active booking
-function cancelActiveBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        const booking = bookings.find(b => b.id === bookingId);
-        if (booking) {
-            booking.status = 'cancelled';
-            saveBookingsToStorage();
-            
-            if (currentUser) {
-                localStorage.removeItem(`lastBookingTime_${currentUser.email}`);
-            }
-            
-            checkBookingRestriction();
-            loadActiveBooking();
-            
-            if (selectedDate) {
-                updateLakeAvailability(formatDate(selectedDate));
-            }
-            
-            alert('Booking cancelled successfully. You can now make a new booking.');
+async function cancelActiveBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking? This will lift your booking restriction and allow you to make a new booking immediately.')) {
+        return;
+    }
+    
+    try {
+        console.log('[Booking] Cancelling booking via API:', bookingId);
+        
+        // Check if BignorAPI is available
+        if (!window.BignorAPI) {
+            throw new Error('API client not available. Please refresh the page.');
         }
+        
+        // Call API to cancel booking
+        await BignorAPI.bookings.cancelBooking(bookingId);
+        
+        console.log('[Booking] Booking cancelled successfully via API');
+        
+        // Reset the booking restriction when cancelling
+        if (currentUser) {
+            localStorage.removeItem(`lastBookingTime_${currentUser.email}`);
+        }
+        
+        // Reload bookings from API to get updated list
+        await loadBookingsFromStorage();
+        
+        // Update restrictions and active booking display
+        checkBookingRestriction();
+        await loadActiveBooking();
+        
+        // Update lake availability display to reflect the cancelled booking
+        if (selectedDate) {
+            updateLakeAvailability(formatDate(selectedDate));
+        }
+        
+        alert('Booking cancelled successfully. You can now make a new booking.');
+        
+    } catch (error) {
+        console.error('[Booking] Error cancelling booking:', error);
+        alert(error.message || 'There was an error cancelling your booking. Please check if the backend server is running and try again.');
     }
 }
 
@@ -770,7 +791,7 @@ function updateBookingStatuses() {
 
     if (updated) {
         saveBookingsToStorage();
-        loadActiveBooking(); // Refresh active booking display
+        loadActiveBooking().catch(err => console.error('[Booking] Error refreshing active booking:', err)); // Refresh active booking display
     }
 }
 
