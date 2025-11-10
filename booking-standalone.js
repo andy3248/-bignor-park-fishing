@@ -105,18 +105,23 @@ async function loadBookingsFromStorage() {
             console.log('[Booking] Loading bookings from API...');
             const response = await BignorAPI.bookings.getMyBookings(100);
             
-            if (response && response.data) {
-                bookings = response.data.map(b => ({
-                    id: b.id,
-                    userId: b.user_id,
-                    userName: b.user_name || 'Member',
-                    lake: b.lake_id === 1 ? 'bignor' : 'wood',
-                    lakeName: b.lake_id === 1 ? 'Bignor Main Lake' : 'Wood Pool',
-                    date: b.date,
-                    createdAt: b.created_at,
-                    status: b.status, // Keep original status from API
-                    notes: b.notes || ''
-                }));
+            if (response && response.bookings) {
+                bookings = response.bookings.map(b => {
+                    // Determine lake slug from lakeName
+                    const lake = b.lakeName === 'Bignor Main Lake' ? 'bignor' : 'wood';
+                    
+                    return {
+                        id: b.id || b.bookingId,
+                        userId: (currentUser && currentUser.email) || 'unknown',
+                        userName: (currentUser && currentUser.fullName) || (currentUser && currentUser.email) || 'Member',
+                        lake: lake,
+                        lakeName: b.lakeName,
+                        date: b.bookingDate,
+                        createdAt: b.createdAt,
+                        status: b.status, // Keep original status from API
+                        notes: b.notes || ''
+                    };
+                });
                 
                 console.log(`[Booking] Loaded ${bookings.length} bookings from API`);
                 
@@ -381,27 +386,32 @@ async function confirmBooking() {
             console.log('[Booking] Creating booking via API...');
             
             const bookingData = {
-                lake_id: lakeId,
-                date: dateString,
+                lakeId: lakeId,  // Backend expects 'lakeId' not 'lake_id'
+                bookingDate: dateString,  // Backend expects 'bookingDate' not 'date'
                 notes: notes || ''
             };
             
+            console.log('[Booking] Sending booking data:', bookingData);
             const response = await BignorAPI.bookings.createBooking(bookingData);
             console.log('[Booking] API response:', response);
             
-            if (response && response.data) {
+            if (response && response.booking) {
                 // Success! Convert API response to local format
+                const booking = response.booking;
+                
                 const newBooking = {
-                    id: response.data.id,
-                    userId: response.data.user_id,
-                    userName: response.data.user_name || currentUser.fullName || currentUser.email,
+                    id: booking.id || booking.bookingId,
+                    userId: currentUser.email,
+                    userName: currentUser.fullName || currentUser.email,
                     lake: selectedLake,
-                    lakeName: getLakeName(selectedLake),
-                    date: response.data.date,
-                    notes: response.data.notes || '',
-                    status: response.data.status,
-                    createdAt: response.data.created_at
+                    lakeName: booking.lakeName,
+                    date: booking.bookingDate,
+                    notes: booking.notes || '',
+                    status: booking.status,
+                    createdAt: booking.createdAt
                 };
+                
+                console.log('[Booking] New booking created:', newBooking);
                 
                 // Update local bookings array
                 await loadBookingsFromStorage();
