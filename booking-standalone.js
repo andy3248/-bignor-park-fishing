@@ -116,7 +116,7 @@ async function loadBookingsFromStorage() {
             date: b.bookingDate, // API uses bookingDate, frontend expects date
             bookingDate: b.bookingDate,
             notes: b.notes || '',
-            status: b.status === 'active' ? 'upcoming' : b.status, // Map 'active' to 'upcoming'
+            status: b.status, // Keep original status ('active', 'upcoming', 'completed', 'cancelled')
             createdAt: b.createdAt
         }));
         
@@ -628,10 +628,17 @@ function setLastBookingTime() {
 
 // Load active booking
 async function loadActiveBooking() {
+    console.log('[Booking] loadActiveBooking called');
+    console.log('[Booking] currentUser:', currentUser);
+    
     const activeBookingContent = document.getElementById('activeBookingContent');
-    if (!activeBookingContent) return;
+    if (!activeBookingContent) {
+        console.log('[Booking] activeBookingContent element not found');
+        return;
+    }
 
     if (!currentUser) {
+        console.log('[Booking] No currentUser, showing no booking message');
         activeBookingContent.innerHTML = `
             <div class="no-active-booking">
                 <h4>No Active Booking</h4>
@@ -641,27 +648,25 @@ async function loadActiveBooking() {
         return;
     }
 
-    // Update statuses before loading
-    updateBookingStatuses();
-
-    // Reload bookings from storage to get latest data
+    // Reload bookings from API to ensure we have latest data
     await loadBookingsFromStorage();
+    console.log('[Booking] bookings array:', bookings);
 
-    const userBookings = bookings.filter(booking => booking.userId === currentUser.email);
-
-    // Find active booking (not cancelled and not expired)
-    const activeBooking = userBookings.find(booking => {
-        if (booking.status === 'cancelled' || booking.status === 'completed') return false;
-
-        const now = new Date();
-        const bookingStart = new Date(booking.date + 'T00:00:00');
-        const bookingEnd = new Date(bookingStart.getTime() + (24 * 60 * 60 * 1000)); // +24 hours
-
-        // Only show if booking hasn't expired (within 24 hours from start)
-        return now < bookingEnd;
-    });
+    // Find the user's active booking (API returns bookings for current user, but check both userId and user_id)
+    const userBookings = bookings.filter(booking => 
+        booking.userId === currentUser.email || booking.user_id === currentUser.id
+    );
+    
+    // Find active booking - check for 'active' or 'upcoming' status (API returns 'active', we map to 'upcoming')
+    const activeBooking = userBookings.find(booking => 
+        booking.status === 'active' || booking.status === 'upcoming'
+    );
+    
+    console.log('[Booking] User bookings:', userBookings);
+    console.log('[Booking] Active booking:', activeBooking);
 
     if (!activeBooking) {
+        console.log('[Booking] No active booking found');
         activeBookingContent.innerHTML = `
             <div class="no-active-booking">
                 <h4>No Active Booking</h4>
@@ -672,15 +677,11 @@ async function loadActiveBooking() {
         return;
     }
 
-    const bookingDate = new Date(activeBooking.date + 'T00:00:00');
-    const createdDate = new Date(activeBooking.createdAt);
-    const bookingEnd = new Date(bookingDate.getTime() + (24 * 60 * 60 * 1000));
+    console.log('[Booking] Rendering active booking:', activeBooking);
 
-    // Calculate time remaining
-    const now = new Date();
-    const timeRemaining = bookingEnd - now;
-    const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
-    const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    // Fix date parsing to avoid timezone issues
+    const bookingDate = new Date(activeBooking.date + 'T00:00:00');
+    const createdDate = activeBooking.createdAt ? new Date(activeBooking.createdAt) : new Date();
 
     activeBookingContent.innerHTML = `
         <div class="active-booking-card">
@@ -701,12 +702,12 @@ async function loadActiveBooking() {
                 <div class="booking-detail">
                     <div class="booking-detail-label">Status</div>
                     <div class="booking-detail-value">
-                        <span class="status-badge upcoming">Active</span>
+                        <span class="status-badge upcoming">Upcoming</span>
                     </div>
                 </div>
                 <div class="booking-detail">
-                    <div class="booking-detail-label">Time Remaining</div>
-                    <div class="booking-detail-value">${hoursRemaining}h ${minutesRemaining}m</div>
+                    <div class="booking-detail-label">Booked On</div>
+                    <div class="booking-detail-value">${formatDateDisplay(createdDate)}</div>
                 </div>
             </div>
 
